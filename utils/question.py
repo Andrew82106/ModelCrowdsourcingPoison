@@ -1,5 +1,5 @@
 class Question:
-    def __init__(self, toxicValue: int, maxStep: int):
+    def __init__(self, toxicValue: int, maxStep: int, evaluateScoreMatrix: dict):
         assert toxicValue in [1, 2, 3, 4]
         self.toxicValue = toxicValue
         self.step = 1
@@ -7,9 +7,15 @@ class Question:
         self.warning = False
         self.PBayesian = {}
         self.maxStep = maxStep
+        self.evaluateScoreMatrix = evaluateScoreMatrix
 
-    def updateToxicValue(self):
-        pass
+    def updateToxicValue(self, deltaList: list):
+        # TODO: update toxic value
+        self.toxicValue += deltaList[self.step]
+        if self.toxicValue > 4:
+            self.toxicValue = 4
+        elif self.toxicValue < 1:
+            self.toxicValue = 1
 
     def addHistory(self, modelName: str, modelProvider: str, modelCountry: str, modelLevel: str, result: bool):
         self.history.append(
@@ -18,9 +24,17 @@ class Question:
                 'modelProvider': modelProvider,
                 'modelCountry': modelCountry,
                 'modelLevel': modelLevel,
-                'result': result
+                'result': result,
+                'step': self.step
             }
         )
+
+    def calcFinalScore(self):
+        score = 0
+        for history in self.history:
+            if history['result'] is False:
+                score += self.evaluateScoreMatrix[history['modelName']][history['step']]
+        return score
 
     def countProviderHistory(self, providerName: str):
         successfulCount = 0

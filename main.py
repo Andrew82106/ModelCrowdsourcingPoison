@@ -24,6 +24,18 @@ RejectMatrix = {
     "GLM4-9B-chat": [0, 0, 0.4, 0.5, 0.7]
 }
 # 拒绝概率矩阵
+evaluateScore = {
+    "Qwen2.5-72B-Instruct": [0, 0.2, 1, 1, 0.3],
+    "Deepseek-V3": [0, 0, 0.4, 0.5, 0.7],
+    "GPT-4o": [0, 0, 0.4, 0.4, 0.3],
+    "Qwen2.5-14B-Instruct": [0, 0, 0.44, 0.85, 0.7],
+    "Qwen2.5-32B-Instruct": [0, 0.2, 0.4, 0.65, 0.7],
+    "GPT-4o-mini": [0, 0, 0.4, 0.53, 0.7],
+    "Qwen2-7B-Instruct": [0, 0, 0.24, 0.5, 0.7],
+    "Qwen2.5-7B-Instruct": [0, 0, 0.4, 0.35, 0.7],
+    "GLM4-9B-chat": [0, 0, 0.4, 0.35, 0.7]
+}
+# 输出得分矩阵
 P = Parameters(
     ChiAMsList=model["ChiAMs"],
     ForAMsList=model["ForAMs"],
@@ -184,11 +196,12 @@ def process(
         "account": 0,
         "cash": 0
     }
+    finalQuestionList = []
 
     if inputStrategy == 'flow':
         for question in questionList:
             # 处理问题i
-            while question.step <= P.maxStep:
+            while question.step < P.maxStep:
                 print(f'Processing question step: {question.step}')
                 print(f"cost: {cost}")
                 successFlag = False
@@ -213,7 +226,7 @@ def process(
 
                 if successFlag:
                     question.step += 1
-                    question.updateToxicValue()
+                    question.updateToxicValue(P.deltaList)
                     continue
 
                 # 用BMs处理
@@ -237,7 +250,7 @@ def process(
 
                 if successFlag:
                     question.step += 1
-                    question.updateToxicValue()
+                    question.updateToxicValue(P.deltaList)
                     continue
 
                 # 用FMs处理
@@ -261,15 +274,17 @@ def process(
 
                 if successFlag:
                     question.step += 1
-                    question.updateToxicValue()
+                    question.updateToxicValue(P.deltaList)
                     continue
+            finalQuestionList.append(question)
     elif inputStrategy == 'para':
         while len(questionList):
             for question in questionList:
                 print(f'Processing question step: {question.step}')
                 print(f"cost: {cost}")
-                if question.step > P.maxStep:
+                if question.step >= P.maxStep:
                     questionList.remove(question)
+                    finalQuestionList.append(question)
                     continue
                 successFlag = False
                 # 用AMs处理
@@ -293,7 +308,7 @@ def process(
 
                 if successFlag:
                     question.step += 1
-                    question.updateToxicValue()
+                    question.updateToxicValue(P.deltaList)
                     continue
 
                 # 用BMs处理
@@ -317,7 +332,7 @@ def process(
 
                 if successFlag:
                     question.step += 1
-                    question.updateToxicValue()
+                    question.updateToxicValue(P.deltaList)
                     continue
 
                 # 用FMs处理
@@ -341,17 +356,30 @@ def process(
 
                 if successFlag:
                     question.step += 1
-                    question.updateToxicValue()
+                    question.updateToxicValue(P.deltaList)
                     continue
+    return finalQuestionList
 
 
 if __name__ == '__main__':
     random.seed(time.time())
-    process(
-        inputStrategy='para',
+    # TODO 本地运行成本 -> 不做了
+    # TODO: 按照流程 update toxic value
+    # TODO: 文本质量检测
+    """
+    final score = {
+        "model": [1,3,4,2],
+        ...
+    }
+    """
+    finalQuestionList = process(
+        inputStrategy='flow',
         allocateStrategy='random',
-        detectAlgothms='failure count',
+        detectAlgothms='bayesian',
         defendStrategy='provider inner',
         punishment='time',
-        questionList=[Question(random.randint(1, 4), P.maxStep) for _ in range(P.numQuestions)]
+        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScore) for _ in range(P.numQuestions)]
     )
+
+    for question in finalQuestionList:
+        print(question.calcFinalScore())
