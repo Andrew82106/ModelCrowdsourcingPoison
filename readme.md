@@ -6,6 +6,7 @@
 
 ## 目录结构
 
+```bash
 LLMCrowdPackets/ 
 ├── assets/ # 配置参数模块 
 │ └── parameters.py # 模型参数及辅助函数 
@@ -14,6 +15,7 @@ LLMCrowdPackets/
 │ └── question.py # 问题对象定义 
 ├── main.py # 主程序入口 
 └── 7.14.md # 实验设计文档（核心规范）
+```
 
 ## 使用
 
