@@ -1,6 +1,10 @@
+import random
+
+
 class Question:
     def __init__(self, toxicValue: int, maxStep: int, evaluateScoreMatrix: dict):
         assert toxicValue in [1, 2, 3, 4]
+        self.ID = random.randint(0, 100)
         self.toxicValue = toxicValue
         self.step = 1
         self.history = []
@@ -8,6 +12,12 @@ class Question:
         self.PBayesian = {}
         self.maxStep = maxStep
         self.evaluateScoreMatrix = evaluateScoreMatrix
+        self.cost = {
+            "time": 0,
+            "account": 0,
+            "cash": 0
+        }
+        self.historyCost = {}
 
     def updateToxicValue(self, deltaList: list):
         # TODO: update toxic value

@@ -1,7 +1,10 @@
+import os
+
 from assets.parameters import Parameters
 from utils.question import Question
 import random
 import time
+import pandas as pd
 
 model = {
     "ChiAMs": ["Qwen2.5-72B-Instruct", "Deepseek-V3"],
@@ -25,15 +28,15 @@ RejectMatrix = {
 }
 # 拒绝概率矩阵
 evaluateScore = {
-    "Qwen2.5-72B-Instruct": [0, 0.2, 1, 1, 0.3],
-    "Deepseek-V3": [0, 0, 0.4, 0.5, 0.7],
-    "GPT-4o": [0, 0, 0.4, 0.4, 0.3],
-    "Qwen2.5-14B-Instruct": [0, 0, 0.44, 0.85, 0.7],
-    "Qwen2.5-32B-Instruct": [0, 0.2, 0.4, 0.65, 0.7],
-    "GPT-4o-mini": [0, 0, 0.4, 0.53, 0.7],
-    "Qwen2-7B-Instruct": [0, 0, 0.24, 0.5, 0.7],
-    "Qwen2.5-7B-Instruct": [0, 0, 0.4, 0.35, 0.7],
-    "GLM4-9B-chat": [0, 0, 0.4, 0.35, 0.7]
+    "Qwen2.5-72B-Instruct": [0, 0.2, 1, 1, 0.3, 1.2, 3, 0.2, 0.3, 0.8],
+    "Deepseek-V3": [0, 0, 0.4, 0.5, 0.7, 0.7, 1.2, 3, 0.2, 0.3, 0.8],
+    "GPT-4o": [0, 0, 0.4, 0.4, 0.3, 0.44, 0.85, 0.7, 0.44, 0.85, 0.7],
+    "Qwen2.5-14B-Instruct": [0, 0, 0.44, 0.85, 0.7,  0.7, 0.7, 1.2,  0.7, 0.7, 1.2],
+    "Qwen2.5-32B-Instruct": [0, 0.2, 0.4, 0.65, 0.7, 0.85, 0.7, 0.44, 0.8, 0.85, 0.7, 0.44, 0.8],
+    "GPT-4o-mini": [0, 0, 0.4, 0.53, 0.7, 0.7,  0.7, 0.7, 1, 0.24, 0.5],
+    "Qwen2-7B-Instruct": [0, 0, 0.24, 0.5, 0.7, 0.44, 0.85, 0.7,  0.7, 0.24, 0.5],
+    "Qwen2.5-7B-Instruct": [0, 0, 0.4, 0.35, 0.7, 0.44, 0.85, 0.7,  0.7, 0.24, 0.5],
+    "GLM4-9B-chat": [0, 0, 0.4, 0.35, 0.7, 0.44, 0.85, 0.7, 0.7, 0.24, 0.5]
 }
 # 输出得分矩阵
 P = Parameters(
@@ -46,11 +49,27 @@ P = Parameters(
     rejectMatrix=RejectMatrix
 )
 # 参数实例
+"""
+    可选参数
+    assert inputStrategy in ['flow', 'para'], f'Invalid inputStrategy: {inputStrategy}'
+    assert allocateStrategy in ['random', 'different', 'single'], f'Invalid allocateStrategy: {allocateStrategy}'
+    assert detectAlgothms in ['failure count', 'bayesian', 'mixure'], f'Invalid detectAlgothms: {detectAlgothms}'
+    assert defendStrategy in ['none', 'provider inner', 'simi-global', 'global'], f'Invalid defendStrategy: {defendStrategy}'
+    assert punishment in ['none', 'time', 'account'], f'Invalid punishment: {punishment}'
+    
+"""
+globalInputStrategy = 'flow'
+globalAllocateStrategy = 'random'
+globalDetectAlgothms = 'mixure'
+globalDefendStrategy = 'provider inner'
+globalPunishment = 'time'
+isSave = True
 
 
 def failureCount(defendStrategy: str, question: Question, modelName: str):
     result = False
     warning = False
+    # time.sleep(0.01)
     if defendStrategy == 'none':
         result = False
     elif defendStrategy == 'provider inner':
@@ -177,6 +196,39 @@ def punish(cost: dict, punishment: str):
     return cost
 
 
+def processLevel(
+        modelList: list,
+        allocateStrategy: str,
+        detectAlgothms: str,
+        defendStrategy: str,
+        punishment: str,
+        question: Question,
+        successFlag: bool
+):
+    if allocateStrategy == 'random':
+        random.shuffle(modelList)
+    elif allocateStrategy == 'single':
+        modelList = random.sample(modelList, k=1)
+    for modelName in modelList:
+        question, result, warning = dealQuestion(
+            modelName=modelName,
+            question=question,
+            detectAlgothms=detectAlgothms,
+            defendStrategy=defendStrategy
+        )
+        if not result:
+            successFlag = True  # 说明模型处理成功
+        if warning:
+            question.historyCost[question.step] = question.cost
+            question.cost = punish(question.cost, punishment)
+            question.warning = False
+        if successFlag:
+            question.step += 1
+            question.updateToxicValue(P.deltaList)
+            break  # 如果模型处理成功，则跳出循环
+    return successFlag, question
+
+
 def process(
         inputStrategy: str,
         allocateStrategy: str,
@@ -191,195 +243,74 @@ def process(
     assert defendStrategy in ['none', 'provider inner', 'simi-global', 'global'], f'Invalid defendStrategy: {defendStrategy}'
     assert punishment in ['none', 'time', 'account'], f'Invalid punishment: {punishment}'
 
-    cost = {
-        "time": 0,
-        "account": 0,
-        "cash": 0
-    }
-    finalQuestionList = []
+    finalQuestionList_ = []
 
     if inputStrategy == 'flow':
         for question in questionList:
             # 处理问题i
             while question.step < P.maxStep:
-                print(f'Processing question step: {question.step}')
-                print(f"cost: {cost}")
+                print(f'Processing question {question.ID} step: {question.step}')
+                print(f"cost: {question.cost}")
                 successFlag = False
-                # 用AMs处理
-                modelList = P.model.getAMs()
-                if allocateStrategy == 'random':
-                    random.shuffle(modelList)
-                elif allocateStrategy == 'single':
-                    modelList = random.sample(modelList, k=1)
-                for modelName in modelList:
-                    question, result, warning = dealQuestion(
-                        modelName=modelName,
-                        question=question,
+                Lst = [P.model.getAMs(), P.model.getBMs(), P.model.getFMs()]
+                # 用不同等级的模型处理问题
+                for modelList in Lst:
+                    successFlag, question = processLevel(
+                        modelList=modelList,
+                        allocateStrategy=allocateStrategy,
                         detectAlgothms=detectAlgothms,
-                        defendStrategy=defendStrategy
-                    )
-                    if not result:
-                        successFlag = True
-                    if warning:
-                        cost = punish(cost, punishment)
-                        question.warning = False
-
-                if successFlag:
-                    question.step += 1
-                    question.updateToxicValue(P.deltaList)
-                    continue
-
-                # 用BMs处理
-                modelList = P.model.getBMs()
-                if allocateStrategy == 'random':
-                    random.shuffle(modelList)
-                elif allocateStrategy == 'single':
-                    modelList = random.sample(modelList, k=1)
-                for modelName in modelList:
-                    question, result, warning = dealQuestion(
-                        modelName=modelName,
+                        defendStrategy=defendStrategy,
+                        punishment=punishment,
                         question=question,
-                        detectAlgothms=detectAlgothms,
-                        defendStrategy=defendStrategy
+                        successFlag=successFlag
                     )
-                    if not result:
-                        successFlag = True
-                    if warning:
-                        cost = punish(cost, punishment)
-                        question.warning = False
+                    if successFlag:
+                        break
 
-                if successFlag:
-                    question.step += 1
-                    question.updateToxicValue(P.deltaList)
-                    continue
-
-                # 用FMs处理
-                modelList = P.model.getFMs()
-                if allocateStrategy == 'random':
-                    random.shuffle(modelList)
-                elif allocateStrategy == 'single':
-                    modelList = random.sample(modelList, k=1)
-                for modelName in modelList:
-                    question, result, warning = dealQuestion(
-                        modelName=modelName,
-                        question=question,
-                        detectAlgothms=detectAlgothms,
-                        defendStrategy=defendStrategy
-                    )
-                    if not result:
-                        successFlag = True
-                    if warning:
-                        cost = punish(cost, punishment)
-                        question.warning = False
-
-                if successFlag:
-                    question.step += 1
-                    question.updateToxicValue(P.deltaList)
-                    continue
-            finalQuestionList.append(question)
+            finalQuestionList_.append(question)
     elif inputStrategy == 'para':
         while len(questionList):
             for question in questionList:
-                print(f'Processing question step: {question.step}')
-                print(f"cost: {cost}")
+                print(f'Processing question {question.ID} step: {question.step}')
+                print(f"cost: {question.cost}")
                 if question.step >= P.maxStep:
                     questionList.remove(question)
-                    finalQuestionList.append(question)
+                    finalQuestionList_.append(question)
                     continue
                 successFlag = False
-                # 用AMs处理
-                modelList = P.model.getAMs()
-                if allocateStrategy == 'random':
-                    random.shuffle(modelList)
-                elif allocateStrategy == 'single':
-                    modelList = random.sample(modelList, k=1)
-                for modelName in modelList:
-                    question, result, warning = dealQuestion(
-                        modelName=modelName,
-                        question=question,
+                Lst = [P.model.getAMs(), P.model.getBMs(), P.model.getFMs()]
+                # 用不同等级的模型处理问题
+                for modelList in Lst:
+                    successFlag, question = processLevel(
+                        modelList=modelList,
+                        allocateStrategy=allocateStrategy,
                         detectAlgothms=detectAlgothms,
-                        defendStrategy=defendStrategy
-                    )
-                    if not result:
-                        successFlag = True
-                    if warning:
-                        cost = punish(cost, punishment)
-                        question.warning = False
-
-                if successFlag:
-                    question.step += 1
-                    question.updateToxicValue(P.deltaList)
-                    continue
-
-                # 用BMs处理
-                modelList = P.model.getBMs()
-                if allocateStrategy == 'random':
-                    random.shuffle(modelList)
-                elif allocateStrategy == 'single':
-                    modelList = random.sample(modelList, k=1)
-                for modelName in modelList:
-                    question, result, warning = dealQuestion(
-                        modelName=modelName,
+                        defendStrategy=defendStrategy,
+                        punishment=punishment,
                         question=question,
-                        detectAlgothms=detectAlgothms,
-                        defendStrategy=defendStrategy
+                        successFlag=successFlag
                     )
-                    if not result:
-                        successFlag = True
-                    if warning:
-                        cost = punish(cost, punishment)
-                        question.warning = False
+                    if successFlag:
+                        break
 
-                if successFlag:
-                    question.step += 1
-                    question.updateToxicValue(P.deltaList)
-                    continue
-
-                # 用FMs处理
-                modelList = P.model.getFMs()
-                if allocateStrategy == 'random':
-                    random.shuffle(modelList)
-                elif allocateStrategy == 'single':
-                    modelList = random.sample(modelList, k=1)
-                for modelName in modelList:
-                    question, result, warning = dealQuestion(
-                        modelName=modelName,
-                        question=question,
-                        detectAlgothms=detectAlgothms,
-                        defendStrategy=defendStrategy
-                    )
-                    if not result:
-                        successFlag = True
-                    if warning:
-                        cost = punish(cost, punishment)
-                        question.warning = False
-
-                if successFlag:
-                    question.step += 1
-                    question.updateToxicValue(P.deltaList)
-                    continue
-    return finalQuestionList
+    return finalQuestionList_
 
 
 if __name__ == '__main__':
     random.seed(time.time())
-    # TODO 本地运行成本 -> 不做了
-    # TODO: 按照流程 update toxic value
-    # TODO: 文本质量检测
-    """
-    final score = {
-        "model": [1,3,4,2],
-        ...
-    }
-    """
     finalQuestionList = process(
-        inputStrategy='flow',
-        allocateStrategy='random',
-        detectAlgothms='bayesian',
-        defendStrategy='provider inner',
-        punishment='time',
+        inputStrategy=globalInputStrategy,
+        allocateStrategy=globalAllocateStrategy,
+        detectAlgothms=globalDetectAlgothms,
+        defendStrategy=globalDefendStrategy,
+        punishment=globalPunishment,
         questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScore) for _ in range(P.numQuestions)]
     )
 
-    for question in finalQuestionList:
-        print(question.calcFinalScore())
+    for question_ in finalQuestionList:
+        print(f"question cost:{question_.cost} | question score:{question_.calcFinalScore()}")
+
+    if isSave:
+        dataPth = os.path.join(os.getcwd(), 'result')
+        print(f"Saving result to {dataPth}")
+        # TODO 保存结果

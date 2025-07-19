@@ -32,8 +32,8 @@ class Parameters:
     ):
         self.numQuestions = 10
         self.N = 3
-        self.maxStep = 4
-        self.deltaList = [0, 1, 2, -2, 3]
+        self.maxStep = 10
+        self.deltaList = [0, 1, 2, -2, 3]*3
         self.punishmentTime = 120
         self.model = ModelList(ChiAMsList, ForAMsList, ChiBMsList, ForBMsList, ChiFMsList, ForFMsList)
         self.rejectMatrix = rejectMatrix
