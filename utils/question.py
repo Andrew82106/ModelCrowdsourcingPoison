@@ -20,7 +20,6 @@ class Question:
         self.historyCost = {}
 
     def updateToxicValue(self, deltaList: list):
-        # TODO: update toxic value
         self.toxicValue += deltaList[self.step]
         if self.toxicValue > 4:
             self.toxicValue = 4
@@ -76,3 +75,4 @@ class Question:
                 successfulCount += 1
             else:
                 failureCount += 1
+        return successfulCount, failureCount

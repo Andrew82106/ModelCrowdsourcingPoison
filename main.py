@@ -4,6 +4,7 @@ from assets.parameters import Parameters
 from utils.question import Question
 import random
 import time
+random.seed(time.time())
 import pandas as pd
 
 model = {
@@ -235,7 +236,8 @@ def process(
         detectAlgothms: str,
         defendStrategy: str,
         punishment: str,
-        questionList: list
+        questionList: list,
+        debug: bool = False
 ):
     assert inputStrategy in ['flow', 'para'], f'Invalid inputStrategy: {inputStrategy}'
     assert allocateStrategy in ['random', 'different', 'single'], f'Invalid allocateStrategy: {allocateStrategy}'
@@ -249,8 +251,9 @@ def process(
         for question in questionList:
             # 处理问题i
             while question.step < P.maxStep:
-                print(f'Processing question {question.ID} step: {question.step}')
-                print(f"cost: {question.cost}")
+                if debug:
+                    print(f'Processing question {question.ID} step: {question.step}')
+                    print(f"cost: {question.cost}")
                 successFlag = False
                 Lst = [P.model.getAMs(), P.model.getBMs(), P.model.getFMs()]
                 # 用不同等级的模型处理问题
@@ -271,8 +274,9 @@ def process(
     elif inputStrategy == 'para':
         while len(questionList):
             for question in questionList:
-                print(f'Processing question {question.ID} step: {question.step}')
-                print(f"cost: {question.cost}")
+                if debug:
+                    print(f'Processing question {question.ID} step: {question.step}')
+                    print(f"cost: {question.cost}")
                 if question.step >= P.maxStep:
                     questionList.remove(question)
                     finalQuestionList_.append(question)
@@ -297,7 +301,6 @@ def process(
 
 
 if __name__ == '__main__':
-    random.seed(time.time())
     finalQuestionList = process(
         inputStrategy=globalInputStrategy,
         allocateStrategy=globalAllocateStrategy,
