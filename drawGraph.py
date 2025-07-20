@@ -16,7 +16,8 @@ para = {
 
     "detectAlgothms": ["failure count"],
     # "detectAlgothms": ["failure count", "bayesian", "mixure"],
-    "defendStrategy": ["none", "provider inner", "simi-global", "global"],
+    # "defendStrategy": ["none", "provider inner", "simi-global", "global"],
+    "defendStrategy": ["provider inner", "simi-global", "global"],
 
     "punishment": ["none", "time", "account"]
 }
@@ -55,74 +56,77 @@ def drawBubbleMatrix():
     
     df = pd.DataFrame(result)
     
-    # 创建优化的气泡矩阵图
-    fig, ax = plt.subplots(figsize=(9, 9))
+    # 创建优化的气泡矩阵图 - 横向布局
+    fig, ax = plt.subplots(figsize=(12, 8))
     
     # 获取唯一的攻击策略和防御策略
     attack_methods = sorted(df['attackMethod'].unique())
     defend_methods = sorted(df['defendMethod'].unique())
     
-    # 创建网格坐标
-    x_coords = {method: i for i, method in enumerate(defend_methods)}
-    y_coords = {method: i for i, method in enumerate(attack_methods)}
+    # 创建网格坐标 - 横向布局（攻击策略在X轴，防御策略在Y轴）
+    x_coords = {method: i for i, method in enumerate(attack_methods)}
+    y_coords = {method: i for i, method in enumerate(defend_methods)}
     
-    # 计算气泡大小的缩放因子，使图表更紧凑
+    # 使用幂函数来放大圆圈大小差异，让小的保持小，大的变得更大
     std_range = df['std'].max() - df['std'].min()
     if std_range == 0:
-        size_scale = 400
+        size_scale = 800
     else:
-        size_scale = 1200 / std_range  # 增加缩放因子，凸显标准差差异
+        size_scale = 1500 / std_range  # 基础缩放因子
+    
+    # 使用幂函数 (x^2) 来放大差异
+    def calculate_bubble_size(std_val, min_std, scale_factor):
+        normalized_std = (std_val - min_std) / std_range if std_range > 0 else 0
+        # 使用幂函数，指数为2，让大的值变得更大
+        power_size = (normalized_std ** 2) * scale_factor * 30 + 150
+        return power_size
     
     # 绘制气泡
     scatter = ax.scatter(
-        [x_coords[row['defendMethod']] for _, row in df.iterrows()],
-        [y_coords[row['attackMethod']] for _, row in df.iterrows()],
-        s=[(row['std'] - df['std'].min()) * size_scale + 100 for _, row in df.iterrows()],  # 增加最小气泡大小
+        [x_coords[row['attackMethod']] for _, row in df.iterrows()],
+        [y_coords[row['defendMethod']] for _, row in df.iterrows()],
+        s=[calculate_bubble_size(row['std'], df['std'].min(), size_scale) for _, row in df.iterrows()],
         c=[row['mean'] for _, row in df.iterrows()],      # 气泡颜色基于平均值
-        cmap='viridis',
-        alpha=0.8,
+        cmap='Reds',  # 纯红色渐变
+        alpha=0.5,
         edgecolors='white',
         linewidth=1.5
     )
     
-    # 设置坐标轴
-    ax.set_xticks(range(len(defend_methods)))
-    ax.set_xticklabels(defend_methods, rotation=45, ha='right', fontsize=10)
-    ax.set_yticks(range(len(attack_methods)))
-    ax.set_yticklabels(attack_methods, fontsize=10)
+    # 设置坐标轴 - 横向布局
+    ax.set_xticks([i for i in range(len(attack_methods))])
+    ax.set_xticklabels(attack_methods, rotation=45, ha='right', fontsize=10)
+    ax.set_yticks([i for i in range(len(defend_methods))])
+    ax.set_yticklabels(defend_methods, fontsize=10)
+    
+    # 调整坐标轴范围，给数据点周围留出更多空间
+    ax.set_xlim(-0.5, len(attack_methods) - 0.5)
+    ax.set_ylim(-0.5, len(defend_methods) - 0.5)
     
     # 添加网格
     ax.grid(True, alpha=0.2, linestyle='-', linewidth=0.5)
     
-    # 设置标题和标签
+    # 设置标题和标签 - 横向布局
     ax.set_title('Bubble Matrix Plot of Attack-Defense Strategy Combinations\n(Bubble Size: Standard Deviation, Color: Mean Value)', 
                  fontsize=16, fontweight='bold', pad=20)
-    ax.set_xlabel('Defense Strategy', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Attack Strategy', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Defense Strategy', fontsize=12, fontweight='bold')
     
     # 添加颜色条
     cbar = plt.colorbar(scatter, ax=ax, shrink=0.6, aspect=20)
     cbar.set_label('Mean Value', fontsize=11, fontweight='bold')
     
-    # 添加气泡大小图例 - 优化位置和显示
-    legend_elements = []
-    std_values = [df['std'].min(), df['std'].median(), df['std'].max()]
-    for std_val in std_values:
-        size = (std_val - df['std'].min()) * size_scale + 50
-        legend_elements.append(plt.scatter([], [], s=size, c='gray', alpha=0.8, 
-                                         edgecolors='white', linewidth=1.5, 
-                                         label=f'{std_val:.1f}'))
+    # 在圆点上添加标准差数值 - 横向布局
+    for _, row in df.iterrows():
+        x_pos = x_coords[row['attackMethod']]
+        y_pos = y_coords[row['defendMethod']]
+        ax.text(x_pos, y_pos, f'{row["std"]:.1f}', 
+                ha='center', va='center', fontsize=12, fontweight='bold',
+                color='black', alpha=0.9)  # 调大字体
     
-    # 添加图例，调整位置到颜色条下面，增加间距
-    ax.legend(handles=legend_elements, title='Standard Deviation', 
-             loc='upper left', bbox_to_anchor=(1.02, 0.1), fontsize=10, 
-             title_fontsize=8, labelspacing=2.1, 
-             frameon=True, fancybox=True, shadow=False,
-             borderpad=1.2, columnspacing=2.0)
-    
-    # 调整布局，确保所有元素都能显示
+    # 调整布局，确保所有元素都能显示，并增加边距让点离边框更远
     plt.tight_layout()
-    plt.subplots_adjust(right=0.85)  # 为图例留出空间
+    plt.subplots_adjust(right=1, left=0.1, top=1, bottom=0.1)  # 增加边距，右边留出颜色条空间
     
     plt.savefig('result/graph1_bubble_matrix.png', dpi=300, bbox_inches='tight')
     # plt.show()
