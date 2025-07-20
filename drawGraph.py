@@ -25,6 +25,7 @@ para = {
 
 def drawBubbleMatrix():
     """绘制优化的气泡矩阵图"""
+    # 总步骤长度 vs 攻击防御策略类型：气泡矩阵图
     # 获取数据
     result = []
     for globalInputStrategy in para["inputStrategy"]:
@@ -147,6 +148,10 @@ def drawBubbleMatrix():
     print(f"Best Strategy Combination (Min Mean): {df.loc[best_mean_idx, 'attackMethod']} vs {df.loc[best_mean_idx, 'defendMethod']} (mean: {df.loc[best_mean_idx, 'mean']:.2f})")
     print(f"Worst Strategy Combination (Max Mean): {df.loc[worst_mean_idx, 'attackMethod']} vs {df.loc[worst_mean_idx, 'defendMethod']} (mean: {df.loc[worst_mean_idx, 'mean']:.2f})")
 
+
+def drawGraph2():
+    # 攻击策略 vs 防御策略 vs 成本（失败次数）：热力图
+    pass
 
 if __name__ == '__main__':
     drawBubbleMatrix()

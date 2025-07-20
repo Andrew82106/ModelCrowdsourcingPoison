@@ -31,25 +31,25 @@ LLMCrowdPackets/
 
 ## 缩写
 
-| **方法**             | **中文全称** | **英文全称**                            | **缩写** |
-| ------------------ | -------- | ----------------------------------- | ------ |
-| `inputStrategy`    | 输入策略     | Input Strategy                      | IS     |
-| `flow`             | 流式输入策略   | Flow-based Input Strategy           | FIS    |
-| `para`             | 并行输入策略   | Parallel Input Strategy             | PIS    |
-| `allocateStrategy` | 分配策略     | Allocation Strategy                 | AS     |
-| `random`           | 随机分配策略   | Random Allocation Strategy          | RAS    |
-| `different`        | 不同分配策略   | Different Allocation Strategy       | DAS    |
-| `single`           | 单一分配策略   | Single Allocation Strategy          | SAS    |
-| `detectAlgothms`   | 检测算法     | Detection Algorithms                | DA     |
-| `failure count`    | 失败计数检测算法 | Failure Count Detection Algorithm   | FCDA   |
-| `bayesian`         | 贝叶斯检测算法  | Bayesian Detection Algorithm        | BDA    |
-| `mixure`           | 混合检测算法   | Mixture Detection Algorithm         | MDA    |
-| `defendStrategy`   | 防御策略     | Defense Strategy                    | DS     |
-| `none`             | 无防御      | No Defense                          | ND     |
-| `provider inner`   | 提供方内防御策略 | Provider-Initiated Internal Defense | PIID   |
-| `simi-global`      | 半全局防御策略  | Semi-global Defense Strategy        | SGDS   |
-| `global`           | 全局防御策略   | Global Defense Strategy             | GD     |
-| `punishment`       | 惩罚策略     | Punishment Strategy                 | PS     |
-| `none`             | 无惩罚      | No Punishment                       | NP     |
-| `time`             | 基于时间的惩罚  | Time-based Punishment               | TLP    |
-| `account`          | 基于账户的惩罚  | Account-based Punishment            | ABP    |
+| **方法**                      | **中文全称** | **英文全称**                          | **缩写** |
+| --------------------------- | -------- | --------------------------------- | ------ |
+| `inputStrategy`             | 输入策略     | Input Strategy                    | IS     |
+| `flow`                      | 流式输入策略   | Flow-based Input Strategy         | FIS    |
+| `para`                      | 并行输入策略   | Parallel Input Strategy           | PIS    |
+| `allocateStrategy`          | 分配策略     | Allocation Strategy               | AS     |
+| `random`                    | 随机分配策略   | Random Allocation Strategy        | rand   |
+| `different`                 | 不同分配策略   | Different Allocation Strategy     | diff   |
+| `single`                    | 单一分配策略   | Single Allocation Strategy        | sing   |
+| `detectAlgothms`            | 检测算法     | Detection Algorithms              | DA     |
+| `failure count`             | 失败计数检测算法 | Failure Count Detection Algorithm | FCDA   |
+| `bayesian`                  | 贝叶斯检测算法  | Bayesian Detection Algorithm      | BDA    |
+| `mixure`                    | 混合检测算法   | Mixture Detection Algorithm       | MDA    |
+| `recordStrategy`            | 封禁策略     | Banning Strategy                   | BS     |
+| `none`                      | 无记忆记录    | No Record                         | NR     |
+| `provider self-record`      | 提供方自记录   | Provider Self-record              | PSR    |
+| `alliance record`           | 联盟记录     | Alliance Record                   | AR     |
+| `open-source shared record` | 开源共享记录   | Open-source Shared Record         | OSSR   |
+| `banningStrategy`           | 封禁策略     | Banning Strategy                  | BS     |
+| `none`                      | 无封禁      | No Banning                        | NB     |
+| `time`                      | 基于时间的封禁  | Time-based Banning                | TBB    |
+| `account`                   | 基于账户的封禁  | Account-based Banning             | ABB    |
