@@ -210,6 +210,7 @@ def processLevel(
         random.shuffle(modelList)
     elif allocateStrategy == 'single':
         modelList = random.sample(modelList, k=1)
+        # TODO 贪心选择拒绝概率最小的平台
     for modelName in modelList:
         question, result, warning = dealQuestion(
             modelName=modelName,

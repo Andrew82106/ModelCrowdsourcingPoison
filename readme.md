@@ -27,29 +27,24 @@ LLMCrowdPackets/
 2. 攻击策略 vs 防御策略 vs 成本（失败次数）：热力图
 3. 攻击策略 vs 防御策略 vs 生成效果：热力图
 4. 成本（失败次数）vs 题目质量：表格
-5. 政策：表格
+5. 账号预算 vs 成功问题数
+6. 政策：表格
 
 ## 缩写
 
-| **方法**                      | **中文全称** | **英文全称**                          | **缩写** |
+| **方法**                      | **中文全称** | **英文全称**                      | **缩写** |
 | --------------------------- | -------- | --------------------------------- | ------ |
-| `inputStrategy`             | 输入策略     | Input Strategy                    | IS     |
-| `flow`                      | 流式输入策略   | Flow-based Input Strategy         | FIS    |
-| `para`                      | 并行输入策略   | Parallel Input Strategy           | PIS    |
-| `allocateStrategy`          | 分配策略     | Allocation Strategy               | AS     |
-| `random`                    | 随机分配策略   | Random Allocation Strategy        | rand   |
-| `different`                 | 不同分配策略   | Different Allocation Strategy     | diff   |
-| `single`                    | 单一分配策略   | Single Allocation Strategy        | sing   |
-| `detectAlgothms`            | 检测算法     | Detection Algorithms              | DA     |
-| `failure count`             | 失败计数检测算法 | Failure Count Detection Algorithm | FCDA   |
-| `bayesian`                  | 贝叶斯检测算法  | Bayesian Detection Algorithm      | BDA    |
-| `mixure`                    | 混合检测算法   | Mixture Detection Algorithm       | MDA    |
-| `recordStrategy`            | 封禁策略     | Banning Strategy                   | BS     |
-| `none`                      | 无记忆记录    | No Record                         | NR     |
-| `provider self-record`      | 提供方自记录   | Provider Self-record              | PSR    |
-| `alliance record`           | 联盟记录     | Alliance Record                   | AR     |
-| `open-source shared record` | 开源共享记录   | Open-source Shared Record         | OSSR   |
-| `banningStrategy`           | 封禁策略     | Banning Strategy                  | BS     |
-| `none`                      | 无封禁      | No Banning                        | NB     |
-| `time`                      | 基于时间的封禁  | Time-based Banning                | TBB    |
-| `account`                   | 基于账户的封禁  | Account-based Banning             | ABB    |
+| `inputStrategy`             | **问题输入策略**   | **Account Management Strategy** |Attack-AccMgmt     |
+| `flow`                      | 流式输入策略       | One-by-One Account Strategy         | onebyone    |
+| `para`                      | 账户池策略       | Account Pool           | accpool    |
+| `allocateStrategy`          | **平台选择策略**     | **Platform Select Strategy**  | Attack-PlatSel    |
+| `random`                    | 随机众包   | Random        | random     |
+| `different`                 | 差异化众包   | Differentiated | diff     |
+| `single`                    | 中心化众包   | Centralized        | central     |
+| `detectAlgothms`            | **溯源策略**     | **Trace Strategy**             | Trace     |
+| `failure count`             | 失败计数检测算法 | Failure Count Detection Algorithm | failcount   |
+| `recordStrategy`            | **封禁策略**     | **Banning Strategy**         | Defence-Ban     |
+| `none`                      | 无记忆记录    | No Record                         | norec     |
+| `provider self-record`      | 提供方自记录   | Provider Self-record              | provself    |
+| `alliance record`           | 联盟记录     | Alliance Record                   | alliance     |
+| `open-source shared record` | 开源共享记录   | Open-source Shared Record         | openshare   |

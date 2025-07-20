@@ -43,6 +43,8 @@ def drawBubbleMatrix():
                         punishment=globalPunishment,
                         questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScore) for _ in range(P.numQuestions)]
                     )
+                    # TODO 统计注册账户数量
+                    # TODO 添加账号预算功能
                     historyLengthList = [sum(question_.countAllHistory()) for question_ in finalQuestionList]
                     std = np.std(historyLengthList)
                     mean = np.mean(historyLengthList)
