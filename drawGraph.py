@@ -44,7 +44,7 @@ para2name = {
 }
 
 
-def drawBubbleMatrix():
+def drawGraph1():
     """绘制优化的气泡矩阵图"""
     # 总步骤长度 vs 攻击防御策略类型：气泡矩阵图
     # 获取数据
@@ -186,8 +186,83 @@ def drawBubbleMatrix():
 
 
 def drawGraph2():
-    # 攻击策略 vs 防御策略 vs 成本（失败次数）：热力图
-    pass
+    """Draw heatmap of failure counts under different attack and defense strategies (in English)"""
+    # 获取数据
+    result = []
+    for globalInputStrategy in para["inputStrategy"]:
+        for globalAllocateStrategy in para["allocateStrategy"]:
+            for globalDetectAlgothms in para["detectAlgothms"]:
+                for globalDefendStrategy in para["defendStrategy"]:
+                    attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                    defendMethod = globalDetectAlgothms + '-' + globalDefendStrategy
+                    globalPunishment = 'account'
+                    finalQuestionList = process(
+                        inputStrategy=globalInputStrategy,
+                        allocateStrategy=globalAllocateStrategy,
+                        detectAlgothms=globalDetectAlgothms,
+                        defendStrategy=globalDefendStrategy,
+                        punishment=globalPunishment,
+                        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
+                    )
+                    fail_counts = [question_.countAllHistory()[1] for question_ in finalQuestionList]
+                    mean_fail = np.mean(fail_counts)
+                    result.append(
+                        {
+                            "attackMethod": attackMethod,
+                            "defendMethod": defendMethod,
+                            "mean_fail": mean_fail
+                        }
+                    )
+
+    df = pd.DataFrame(result)
+
+    # 用 para2name 转换显示名称
+    def convert_attack_method(method):
+        parts = method.split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    def convert_defend_method(method):
+        parts = method.replace('simi-global', 'simiglobal').split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    attack_methods = sorted(df['attackMethod'].unique())
+    defend_methods = sorted(df['defendMethod'].unique())
+    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
+    defend_methods_disp = [convert_defend_method(m) for m in defend_methods]
+
+    # 构建热力图数据矩阵
+    heatmap_data = np.zeros((len(defend_methods), len(attack_methods)))
+    for i, d in enumerate(defend_methods):
+        for j, a in enumerate(attack_methods):
+            val = df[(df['attackMethod'] == a) & (df['defendMethod'] == d)]['mean_fail']
+            heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
+
+    # 绘制热力图
+    plt.figure(figsize=(12, 8))
+    ax = sns.heatmap(
+        heatmap_data,
+        annot=True,
+        fmt='.1f',
+        cmap='Reds',
+        xticklabels=attack_methods_disp,
+        yticklabels=defend_methods_disp,
+        cbar_kws={'label': 'Mean Failure Count'}
+    )
+    plt.title('Heatmap of Failure Counts for Attack-Defense Strategy Combinations', fontsize=16, fontweight='bold', pad=20)
+    plt.xlabel('Attack Strategy', fontsize=12, fontweight='bold')
+    plt.ylabel('Defense Strategy', fontsize=12, fontweight='bold')
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.tight_layout()
+    plt.savefig('result/graph2_heatmap.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+    print("\n=== Heatmap of Failure Counts Saved ===")
+    print(f"Failure Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
+
 
 if __name__ == '__main__':
-    drawBubbleMatrix()
+    drawGraph2()
+

@@ -62,7 +62,7 @@ class Question(MetaFunction):
         failureCount = 0
         for history in self.history:
             if history['modelProvider'] == providerName:
-                if history['result']:
+                if not history['result']:
                     successfulCount += 1
                 else:
                     failureCount += 1
@@ -73,7 +73,7 @@ class Question(MetaFunction):
         failureCount = 0
         for history in self.history:
             if history['modelCountry'] == countryName:
-                if history['result']:
+                if not history['result']:
                     successfulCount += 1
                 else:
                     failureCount += 1
@@ -83,7 +83,7 @@ class Question(MetaFunction):
         successfulCount = 0
         failureCount = 0
         for history in self.history:
-            if history['result']:
+            if not history['result']:
                 successfulCount += 1
             else:
                 failureCount += 1
