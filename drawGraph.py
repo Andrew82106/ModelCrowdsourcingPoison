@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import itertools
 
 # 设置字体和样式
 plt.style.use('default')
@@ -263,6 +264,188 @@ def drawGraph2():
     print(f"Failure Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
 
 
+def drawGraph3():
+    """绘制不同攻击策略和防御策略下的生成效果热力图（均值由Question.calcFinalScore给出）"""
+    result = []
+    for globalInputStrategy in para["inputStrategy"]:
+        for globalAllocateStrategy in para["allocateStrategy"]:
+            for globalDetectAlgothms in para["detectAlgothms"]:
+                for globalDefendStrategy in para["defendStrategy"]:
+                    attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                    defendMethod = globalDetectAlgothms + '-' + globalDefendStrategy
+                    globalPunishment = 'account'
+                    finalQuestionList = process(
+                        inputStrategy=globalInputStrategy,
+                        allocateStrategy=globalAllocateStrategy,
+                        detectAlgothms=globalDetectAlgothms,
+                        defendStrategy=globalDefendStrategy,
+                        punishment=globalPunishment,
+                        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
+                    )
+                    final_scores = [question_.calcFinalScore() for question_ in finalQuestionList]
+                    mean_final_score = np.mean(final_scores)
+                    result.append(
+                        {
+                            "attackMethod": attackMethod,
+                            "defendMethod": defendMethod,
+                            "mean_final_score": mean_final_score
+                        }
+                    )
+
+    df = pd.DataFrame(result)
+
+    # 用 para2name 转换显示名称
+    def convert_attack_method(method):
+        parts = method.split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    def convert_defend_method(method):
+        parts = method.replace('simi-global', 'simiglobal').split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    attack_methods = sorted(df['attackMethod'].unique())
+    defend_methods = sorted(df['defendMethod'].unique())
+    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
+    defend_methods_disp = [convert_defend_method(m) for m in defend_methods]
+
+    # 构建热力图数据矩阵
+    heatmap_data = np.zeros((len(defend_methods), len(attack_methods)))
+    for i, d in enumerate(defend_methods):
+        for j, a in enumerate(attack_methods):
+            val = df[(df['attackMethod'] == a) & (df['defendMethod'] == d)]['mean_final_score']
+            heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
+
+    # 绘制热力图
+    plt.figure(figsize=(12, 8))
+    ax = sns.heatmap(
+        heatmap_data,
+        annot=True,
+        fmt='.1f',
+        cmap='Reds',
+        xticklabels=attack_methods_disp,
+        yticklabels=defend_methods_disp,
+        cbar_kws={'label': 'Mean Final Score'}
+    )
+    plt.title('Heatmap of Final Scores for Attack-Defense Strategy Combinations', fontsize=16, fontweight='bold', pad=20)
+    plt.xlabel('Attack Strategy', fontsize=12, fontweight='bold')
+    plt.ylabel('Defense Strategy', fontsize=12, fontweight='bold')
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.tight_layout()
+    plt.savefig('result/graph3_finalscore_heatmap.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+    print("\n=== Heatmap of Final Scores Saved ===")
+    print(f"Final Score Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
+
+
+def drawGraph4():
+    """成本（失败次数）vs 题目质量：表格，包含均值和标准差"""
+    result = []
+    for globalInputStrategy in para["inputStrategy"]:
+        for globalAllocateStrategy in para["allocateStrategy"]:
+            for globalDetectAlgothms in para["detectAlgothms"]:
+                for globalDefendStrategy in para["defendStrategy"]:
+                    attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                    defendMethod = globalDetectAlgothms + '-' + globalDefendStrategy
+                    globalPunishment = 'account'
+                    # 每种攻防组合做10次实验
+                    for exp_id in range(10):
+                        finalQuestionList = process(
+                            inputStrategy=globalInputStrategy,
+                            allocateStrategy=globalAllocateStrategy,
+                            detectAlgothms=globalDetectAlgothms,
+                            defendStrategy=globalDefendStrategy,
+                            punishment=globalPunishment,
+                            questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
+                        )
+                        # 统计总失败次数和题目质量
+                        total_fail = sum([q.countAllHistory()[1] for q in finalQuestionList])
+                        total_score = sum([q.calcFinalScore() for q in finalQuestionList])
+                        result.append({
+                            "attackMethod": attackMethod,
+                            "defendMethod": defendMethod,
+                            "exp_id": exp_id + 1,
+                            "total_fail": total_fail,
+                            "total_score": total_score
+                        })
+    # 转为DataFrame并保存原始数据
+    df = pd.DataFrame(result)
+    df.to_csv('result/graph4_fail_vs_score.csv', index=False)
+    print("原始表格已保存到 result/graph4_fail_vs_score.csv")
+
+    # 按失败次数分组，统计题目质量均值和标准差
+    stat_df = df.groupby('total_fail')['total_score'].agg(['mean', 'std']).reset_index()
+    stat_df.rename(columns={'mean': 'score_mean', 'std': 'score_std'}, inplace=True)
+    stat_df.to_csv('result/graph4_fail_vs_score_stat.csv', index=False)
+    print("分组统计表已保存到 result/graph4_fail_vs_score_stat.csv")
+
+
+def drawGraph5(min_budget=15, max_budget=35):
+    """账号预算 vs 成功问题数 折线图，颜色+marker均匀分布且唯一"""
+    result = []
+    budgets = list(range(min_budget, max_budget + 1))
+    color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    marker_list = ['o', 's', '^', 'D', 'P', '*', 'X', 'v', '<', '>', 'h', 'H', 'd', '|', '_']
+    style_combos = list(itertools.product(color_list, marker_list))
+    random.shuffle(style_combos)  # 打乱顺序，保证多样性
+
+    for globalInputStrategy in para["inputStrategy"]:
+        for globalAllocateStrategy in para["allocateStrategy"]:
+            for globalDetectAlgothms in para["detectAlgothms"]:
+                for globalDefendStrategy in para["defendStrategy"]:
+                    attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                    defendMethod = globalDetectAlgothms + '-' + globalDefendStrategy
+                    def convert_method(method):
+                        parts = method.split('-')
+                        if len(parts) == 2:
+                            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+                        return method
+                    attack_label = convert_method(attackMethod)
+                    defend_label = convert_method(defendMethod.replace('simi-global', 'simiglobal'))
+                    label = f"{attack_label} | {defend_label}"
+                    globalPunishment = 'account'
+                    finalQuestionList = process(
+                        inputStrategy=globalInputStrategy,
+                        allocateStrategy=globalAllocateStrategy,
+                        detectAlgothms=globalDetectAlgothms,
+                        defendStrategy=globalDefendStrategy,
+                        punishment=globalPunishment,
+                        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
+                    )
+                    account_needed_list = []
+                    for q in finalQuestionList:
+                        provider_count = sum(q.countBaseAccountNum().values())
+                        fail_count = q.countAllHistory()[0]
+                        account_needed = provider_count + fail_count
+                        account_needed_list.append(account_needed)
+                    success_counts = []
+                    for budget in budgets:
+                        success_count = sum(1 for acc in account_needed_list if acc <= budget)
+                        success_counts.append(success_count)
+                    result.append({
+                        "label": label,
+                        "budgets": budgets,
+                        "success_counts": success_counts
+                    })
+    # 画图
+    plt.figure(figsize=(12, 8))
+    for idx, item in enumerate(result):
+        color, marker = style_combos[idx % len(style_combos)]
+        plt.plot(item['budgets'], item['success_counts'], label=item['label'],
+                 color=color, marker=marker, markersize=7, linewidth=2)
+    plt.xlabel('Account Budget', fontsize=12, fontweight='bold')
+    plt.ylabel('Number of Successful Questions', fontsize=12, fontweight='bold')
+    plt.title('Account Budget vs Number of Successful Questions', fontsize=16, fontweight='bold')
+    plt.legend(fontsize=8)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('result/graph5_account_vs_success.png', dpi=300, bbox_inches='tight')
+    print(f"账号预算-成功问题数折线图已保存到 result/graph5_account_vs_success.png，预算范围：{min_budget}-{max_budget}")
+
+
 if __name__ == '__main__':
-    drawGraph2()
+    drawGraph5()    
 
