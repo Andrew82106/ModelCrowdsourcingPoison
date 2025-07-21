@@ -1,3 +1,6 @@
+from utils.meta import MetaFunction
+
+
 class ModelList:
     def __init__(self, ChiAMsList: list, ForAMsList: list, ChiBMsList: list, ForBMsList: list, ChiFMsList: list,
                  ForFMsList: list):
@@ -18,8 +21,7 @@ class ModelList:
         return self.ChiFMsList + self.ForFMsList
 
 
-
-class Parameters:
+class Parameters(MetaFunction):
     def __init__(
             self,
             ChiAMsList: list,
@@ -30,6 +32,7 @@ class Parameters:
             ForFMsList: list,
             rejectMatrix
     ):
+        super().__init__()
         self.numQuestions = 10
         self.N = 3
         self.maxStep = 10
@@ -50,20 +53,6 @@ class Parameters:
         elif modelName in self.model.ChiFMsList:
             return "ChiFMs"
 
-    @staticmethod
-    def findModelProvider(modelName: str):
-        if "GPT" in modelName:
-            return 'openAI'
-        if "LLama" in modelName:
-            return 'meta'
-        if "Qwen" in modelName or "QwQ" in modelName:
-            return 'tongyi'
-        if "GLM" in modelName:
-            return 'zhipu'
-        if "Deepseek" in modelName:
-            return 'deepseek'
-        else:
-            raise ValueError(f"Invalid model name: {modelName}")
 
     def findModelCountry(self, modelName: str):
         ModelLevel = self.findModelLevel(modelName)

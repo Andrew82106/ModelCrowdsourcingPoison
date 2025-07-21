@@ -1,44 +1,13 @@
 import os
-
-from assets.parameters import Parameters
+from utils.parameters import Parameters
 from utils.question import Question
+from utils.utils import convertCSV2Dict, check
 import random
 import time
 random.seed(time.time())
-import pandas as pd
-
-model = {
-    "ChiAMs": ["Qwen2.5-72B-Instruct", "Deepseek-V3"],
-    "ForAMs": ["GPT-4o"],
-    "ChiBMs": ["Qwen2.5-14B-Instruct", "Qwen2.5-32B-Instruct"],
-    "ForBMs": ["GPT-4o-mini"],
-    "ChiFMs": ["Qwen2-7B-Instruct", "Qwen2.5-7B-Instruct", "GLM4-9B-chat"],
-    "ForFMs": []
-}
-# 模型列表
-RejectMatrix = {
-    "Qwen2.5-72B-Instruct": [0, 0, 0.4, 0.5, 0.7],
-    "Deepseek-V3": [0, 0, 0.4, 0.5, 0.7],
-    "GPT-4o": [0, 0, 0.4, 0.5, 0.7],
-    "Qwen2.5-14B-Instruct": [0, 0, 0.4, 0.5, 0.7],
-    "Qwen2.5-32B-Instruct": [0, 0, 0.4, 0.5, 0.7],
-    "GPT-4o-mini": [0, 0, 0.4, 0.5, 0.7],
-    "Qwen2-7B-Instruct": [0, 0, 0.4, 0.5, 0.7],
-    "Qwen2.5-7B-Instruct": [0, 0, 0.4, 0.5, 0.7],
-    "GLM4-9B-chat": [0, 0, 0.4, 0.5, 0.7]
-}
-# 拒绝概率矩阵
-evaluateScore = {
-    "Qwen2.5-72B-Instruct": [0, 0.2, 1, 1, 0.3, 1.2, 3, 0.2, 0.3, 0.8],
-    "Deepseek-V3": [0, 0, 0.4, 0.5, 0.7, 0.7, 1.2, 3, 0.2, 0.3, 0.8],
-    "GPT-4o": [0, 0, 0.4, 0.4, 0.3, 0.44, 0.85, 0.7, 0.44, 0.85, 0.7],
-    "Qwen2.5-14B-Instruct": [0, 0, 0.44, 0.85, 0.7,  0.7, 0.7, 1.2,  0.7, 0.7, 1.2],
-    "Qwen2.5-32B-Instruct": [0, 0.2, 0.4, 0.65, 0.7, 0.85, 0.7, 0.44, 0.8, 0.85, 0.7, 0.44, 0.8],
-    "GPT-4o-mini": [0, 0, 0.4, 0.53, 0.7, 0.7,  0.7, 0.7, 1, 0.24, 0.5],
-    "Qwen2-7B-Instruct": [0, 0, 0.24, 0.5, 0.7, 0.44, 0.85, 0.7,  0.7, 0.24, 0.5],
-    "Qwen2.5-7B-Instruct": [0, 0, 0.4, 0.35, 0.7, 0.44, 0.85, 0.7,  0.7, 0.24, 0.5],
-    "GLM4-9B-chat": [0, 0, 0.4, 0.35, 0.7, 0.44, 0.85, 0.7, 0.7, 0.24, 0.5]
-}
+model = convertCSV2Dict(os.path.join(os.getcwd(), 'configMatrix', 'models.csv'))
+rejectMatrix = convertCSV2Dict(os.path.join(os.getcwd(), 'configMatrix', 'rejectMatrix.csv'))
+evaluateScoreMatrix = convertCSV2Dict(os.path.join(os.getcwd(), 'configMatrix', 'evaluateScore.csv'))
 # 输出得分矩阵
 P = Parameters(
     ChiAMsList=model["ChiAMs"],
@@ -47,8 +16,10 @@ P = Parameters(
     ForBMsList=model["ForBMs"],
     ChiFMsList=model["ChiFMs"],
     ForFMsList=model["ForFMs"],
-    rejectMatrix=RejectMatrix
+    rejectMatrix=rejectMatrix
 )
+check(evaluateScoreMatrix, rejectMatrix, model, P.maxStep)
+
 # 参数实例
 """
     可选参数
@@ -308,7 +279,7 @@ if __name__ == '__main__':
         detectAlgothms=globalDetectAlgothms,
         defendStrategy=globalDefendStrategy,
         punishment=globalPunishment,
-        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScore) for _ in range(P.numQuestions)]
+        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
     )
 
     for question_ in finalQuestionList:

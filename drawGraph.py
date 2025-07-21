@@ -1,4 +1,4 @@
-from main import process, P, evaluateScore, Question
+from main import process, P, evaluateScoreMatrix, Question
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +19,28 @@ para = {
     # "defendStrategy": ["none", "provider inner", "simi-global", "global"],
     "defendStrategy": ["provider inner", "simi-global", "global"],
 
-    "punishment": ["none", "time", "account"]
+    "punishment": ["account"]
+}
+
+para2name = {
+    # inputStrategy
+    "inputStrategy": "Attack-AccMgmt",
+    "flow": "onebyone",
+    "para": "accpool",
+    # allocateStrategy
+    "allocateStrategy": "Attack-PlatSel",
+    "random": "random",
+    "different": "diff",
+    "single": "central",
+    # detectAlgothms
+    "detectAlgothms": "Trace",
+    "failure count": "failcount",
+    # recordStrategy
+    "recordStrategy": "Defence-Ban",
+    "none": "norec",
+    "provider inner": "provself",
+    "simiglobal": "alliance",
+    "global": "openshare",
 }
 
 
@@ -41,11 +62,9 @@ def drawBubbleMatrix():
                         detectAlgothms=globalDetectAlgothms,
                         defendStrategy=globalDefendStrategy,
                         punishment=globalPunishment,
-                        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScore) for _ in range(P.numQuestions)]
+                        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
                     )
-                    # TODO 统计注册账户数量
-                    # TODO 添加账号预算功能
-                    historyLengthList = [sum(question_.countAllHistory()) for question_ in finalQuestionList]
+                    historyLengthList = [sum(question_.countAllHistory()) + len(question_.countBaseAccountNum()) for question_ in finalQuestionList]
                     std = np.std(historyLengthList)
                     mean = np.mean(historyLengthList)
                     result.append(
@@ -65,7 +84,22 @@ def drawBubbleMatrix():
     # 获取唯一的攻击策略和防御策略
     attack_methods = sorted(df['attackMethod'].unique())
     defend_methods = sorted(df['defendMethod'].unique())
-    
+
+    # 用para2name转换x轴和y轴的显示名称
+    def convert_attack_method(method):
+        parts = method.split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+    def convert_defend_method(method):
+        parts = method.replace('simi-global', 'simiglobal').split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
+    defend_methods_disp = [convert_defend_method(m) for m in defend_methods]
+
     # 创建网格坐标 - 横向布局（攻击策略在X轴，防御策略在Y轴）
     x_coords = {method: i for i, method in enumerate(attack_methods)}
     y_coords = {method: i for i, method in enumerate(defend_methods)}
@@ -97,14 +131,14 @@ def drawBubbleMatrix():
     )
     
     # 设置坐标轴 - 横向布局
-    ax.set_xticks([i for i in range(len(attack_methods))])
-    ax.set_xticklabels(attack_methods, rotation=45, ha='right', fontsize=10)
-    ax.set_yticks([i for i in range(len(defend_methods))])
-    ax.set_yticklabels(defend_methods, fontsize=10)
+    ax.set_xticks([i for i in range(len(attack_methods_disp))])
+    ax.set_xticklabels(attack_methods_disp, rotation=45, ha='right', fontsize=10)
+    ax.set_yticks([i for i in range(len(defend_methods_disp))])
+    ax.set_yticklabels(defend_methods_disp, fontsize=10)
     
     # 调整坐标轴范围，给数据点周围留出更多空间
-    ax.set_xlim(-0.5, len(attack_methods) - 0.5)
-    ax.set_ylim(-0.5, len(defend_methods) - 0.5)
+    ax.set_xlim(-0.5, len(attack_methods_disp) - 0.5)
+    ax.set_ylim(-0.5, len(defend_methods_disp) - 0.5)
     
     # 添加网格
     ax.grid(True, alpha=0.2, linestyle='-', linewidth=0.5)

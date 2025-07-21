@@ -1,8 +1,10 @@
 import random
+from utils.meta import MetaFunction
 
 
-class Question:
+class Question(MetaFunction):
     def __init__(self, toxicValue: int, maxStep: int, evaluateScoreMatrix: dict):
+        super().__init__()
         assert toxicValue in [1, 2, 3, 4]
         self.ID = random.randint(0, 100)
         self.toxicValue = toxicValue
@@ -37,6 +39,16 @@ class Question:
                 'step': self.step
             }
         )
+    
+
+    def countBaseAccountNum(self):
+        baseAccount = {}
+        for history in self.history:
+            if history['modelProvider'] not in baseAccount:
+                baseAccount[history['modelProvider']] = 0
+            baseAccount[history['modelProvider']] += 1
+        return baseAccount
+
 
     def calcFinalScore(self):
         score = 0
@@ -76,3 +88,4 @@ class Question:
             else:
                 failureCount += 1
         return successfulCount, failureCount
+    
