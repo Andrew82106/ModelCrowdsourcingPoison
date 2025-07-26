@@ -1,181 +1,181 @@
 attackMethod,defendMethod,exp_id,total_fail,total_score
-flow-random,failure count-provider inner,1,27,40.0
-flow-random,failure count-provider inner,2,45,38.9
-flow-random,failure count-provider inner,3,38,37.199999999999996
-flow-random,failure count-provider inner,4,25,35.79999999999999
-flow-random,failure count-provider inner,5,31,40.0
-flow-random,failure count-provider inner,6,44,38.39999999999999
-flow-random,failure count-provider inner,7,44,37.8
-flow-random,failure count-provider inner,8,47,38.199999999999996
-flow-random,failure count-provider inner,9,33,37.2
-flow-random,failure count-provider inner,10,31,37.3
-flow-random,failure count-simi-global,1,34,38.699999999999996
-flow-random,failure count-simi-global,2,35,37.5
-flow-random,failure count-simi-global,3,44,38.2
-flow-random,failure count-simi-global,4,51,38.8
-flow-random,failure count-simi-global,5,33,38.3
-flow-random,failure count-simi-global,6,41,37.599999999999994
-flow-random,failure count-simi-global,7,32,37.8
-flow-random,failure count-simi-global,8,51,38.1
-flow-random,failure count-simi-global,9,40,39.4
-flow-random,failure count-simi-global,10,30,37.6
-flow-random,failure count-global,1,28,37.4
-flow-random,failure count-global,2,49,36.599999999999994
-flow-random,failure count-global,3,31,37.3
-flow-random,failure count-global,4,34,37.199999999999996
-flow-random,failure count-global,5,22,39.699999999999996
-flow-random,failure count-global,6,30,39.09999999999999
-flow-random,failure count-global,7,28,38.8
-flow-random,failure count-global,8,26,38.199999999999996
-flow-random,failure count-global,9,31,38.699999999999996
-flow-random,failure count-global,10,44,36.79999999999999
-flow-different,failure count-provider inner,1,49,41.5
-flow-different,failure count-provider inner,2,62,43.5
-flow-different,failure count-provider inner,3,47,46.20000000000001
-flow-different,failure count-provider inner,4,59,42.199999999999996
-flow-different,failure count-provider inner,5,61,41.2
-flow-different,failure count-provider inner,6,56,44.199999999999996
-flow-different,failure count-provider inner,7,55,43.6
-flow-different,failure count-provider inner,8,46,43.2
-flow-different,failure count-provider inner,9,51,43.4
-flow-different,failure count-provider inner,10,67,41.6
-flow-different,failure count-simi-global,1,49,42.3
-flow-different,failure count-simi-global,2,64,44.5
-flow-different,failure count-simi-global,3,55,43.300000000000004
-flow-different,failure count-simi-global,4,60,43.39999999999999
-flow-different,failure count-simi-global,5,55,43.3
-flow-different,failure count-simi-global,6,52,43.3
-flow-different,failure count-simi-global,7,74,42.9
-flow-different,failure count-simi-global,8,55,40.4
-flow-different,failure count-simi-global,9,42,43.99999999999999
-flow-different,failure count-simi-global,10,43,43.300000000000004
-flow-different,failure count-global,1,48,41.900000000000006
-flow-different,failure count-global,2,34,43.699999999999996
-flow-different,failure count-global,3,53,43.5
-flow-different,failure count-global,4,58,44.39999999999999
-flow-different,failure count-global,5,62,43.50000000000001
-flow-different,failure count-global,6,57,44.6
-flow-different,failure count-global,7,53,43.4
-flow-different,failure count-global,8,50,42.6
-flow-different,failure count-global,9,52,44.8
-flow-different,failure count-global,10,49,42.800000000000004
-flow-single,failure count-provider inner,1,62,44.1
-flow-single,failure count-provider inner,2,78,42.300000000000004
-flow-single,failure count-provider inner,3,85,42.9
-flow-single,failure count-provider inner,4,54,39.5
-flow-single,failure count-provider inner,5,71,45.50000000000001
-flow-single,failure count-provider inner,6,53,41.199999999999996
-flow-single,failure count-provider inner,7,57,43.89999999999999
-flow-single,failure count-provider inner,8,60,43.1
-flow-single,failure count-provider inner,9,61,44.8
-flow-single,failure count-provider inner,10,56,43.699999999999996
-flow-single,failure count-simi-global,1,45,41.89999999999999
-flow-single,failure count-simi-global,2,57,43.5
-flow-single,failure count-simi-global,3,56,43.50000000000001
-flow-single,failure count-simi-global,4,57,44.30000000000001
-flow-single,failure count-simi-global,5,58,41.10000000000001
-flow-single,failure count-simi-global,6,36,41.3
-flow-single,failure count-simi-global,7,52,43.7
-flow-single,failure count-simi-global,8,50,40.699999999999996
-flow-single,failure count-simi-global,9,63,43.099999999999994
-flow-single,failure count-simi-global,10,77,43.1
-flow-single,failure count-global,1,73,42.6
-flow-single,failure count-global,2,48,41.7
-flow-single,failure count-global,3,64,42.2
-flow-single,failure count-global,4,63,44.3
-flow-single,failure count-global,5,62,42.699999999999996
-flow-single,failure count-global,6,61,42.0
-flow-single,failure count-global,7,57,44.2
-flow-single,failure count-global,8,80,43.3
-flow-single,failure count-global,9,47,40.0
-flow-single,failure count-global,10,61,43.2
-para-random,failure count-provider inner,1,48,40.1
-para-random,failure count-provider inner,2,39,39.599999999999994
-para-random,failure count-provider inner,3,39,37.29999999999999
-para-random,failure count-provider inner,4,46,36.6
-para-random,failure count-provider inner,5,44,39.400000000000006
-para-random,failure count-provider inner,6,42,37.49999999999999
-para-random,failure count-provider inner,7,46,38.4
-para-random,failure count-provider inner,8,42,38.1
-para-random,failure count-provider inner,9,50,37.99999999999999
-para-random,failure count-provider inner,10,37,38.3
-para-random,failure count-simi-global,1,23,36.1
-para-random,failure count-simi-global,2,34,38.300000000000004
-para-random,failure count-simi-global,3,40,38.199999999999996
-para-random,failure count-simi-global,4,45,37.199999999999996
-para-random,failure count-simi-global,5,40,37.1
-para-random,failure count-simi-global,6,33,36.5
-para-random,failure count-simi-global,7,44,38.3
-para-random,failure count-simi-global,8,34,36.2
-para-random,failure count-simi-global,9,36,38.199999999999996
-para-random,failure count-simi-global,10,44,38.89999999999999
-para-random,failure count-global,1,52,39.1
-para-random,failure count-global,2,36,38.4
-para-random,failure count-global,3,25,38.800000000000004
-para-random,failure count-global,4,47,39.0
-para-random,failure count-global,5,52,38.0
-para-random,failure count-global,6,35,37.699999999999996
-para-random,failure count-global,7,42,37.099999999999994
-para-random,failure count-global,8,43,36.199999999999996
-para-random,failure count-global,9,35,36.199999999999996
-para-random,failure count-global,10,34,38.7
-para-different,failure count-provider inner,1,48,42.5
-para-different,failure count-provider inner,2,54,44.8
-para-different,failure count-provider inner,3,45,41.99999999999999
-para-different,failure count-provider inner,4,53,44.800000000000004
-para-different,failure count-provider inner,5,42,42.2
-para-different,failure count-provider inner,6,68,43.60000000000001
-para-different,failure count-provider inner,7,55,43.0
-para-different,failure count-provider inner,8,61,44.30000000000001
-para-different,failure count-provider inner,9,46,44.6
-para-different,failure count-provider inner,10,50,43.900000000000006
-para-different,failure count-simi-global,1,52,42.8
-para-different,failure count-simi-global,2,40,43.99999999999999
-para-different,failure count-simi-global,3,70,44.1
-para-different,failure count-simi-global,4,62,40.6
-para-different,failure count-simi-global,5,55,43.3
-para-different,failure count-simi-global,6,54,45.4
-para-different,failure count-simi-global,7,39,45.2
-para-different,failure count-simi-global,8,46,42.10000000000001
-para-different,failure count-simi-global,9,63,43.0
-para-different,failure count-simi-global,10,56,42.8
-para-different,failure count-global,1,42,42.400000000000006
-para-different,failure count-global,2,55,41.9
-para-different,failure count-global,3,54,44.6
-para-different,failure count-global,4,60,42.3
-para-different,failure count-global,5,51,42.9
-para-different,failure count-global,6,54,44.3
-para-different,failure count-global,7,49,43.1
-para-different,failure count-global,8,40,44.2
-para-different,failure count-global,9,74,43.7
-para-different,failure count-global,10,62,42.9
-para-single,failure count-provider inner,1,75,45.3
-para-single,failure count-provider inner,2,44,42.4
-para-single,failure count-provider inner,3,62,41.699999999999996
-para-single,failure count-provider inner,4,63,43.7
-para-single,failure count-provider inner,5,48,43.199999999999996
-para-single,failure count-provider inner,6,74,42.099999999999994
-para-single,failure count-provider inner,7,62,45.4
-para-single,failure count-provider inner,8,41,42.4
-para-single,failure count-provider inner,9,59,42.3
-para-single,failure count-provider inner,10,55,43.10000000000001
-para-single,failure count-simi-global,1,51,42.7
-para-single,failure count-simi-global,2,60,42.3
-para-single,failure count-simi-global,3,51,43.69999999999999
-para-single,failure count-simi-global,4,50,45.099999999999994
-para-single,failure count-simi-global,5,63,40.099999999999994
-para-single,failure count-simi-global,6,80,45.5
-para-single,failure count-simi-global,7,56,44.0
-para-single,failure count-simi-global,8,58,41.69999999999999
-para-single,failure count-simi-global,9,37,43.2
-para-single,failure count-simi-global,10,85,44.9
-para-single,failure count-global,1,56,41.5
-para-single,failure count-global,2,68,42.9
-para-single,failure count-global,3,73,41.300000000000004
-para-single,failure count-global,4,49,41.900000000000006
-para-single,failure count-global,5,58,43.2
-para-single,failure count-global,6,58,41.60000000000001
-para-single,failure count-global,7,52,42.3
-para-single,failure count-global,8,40,43.699999999999996
-para-single,failure count-global,9,75,42.699999999999996
-para-single,failure count-global,10,50,42.0
+flow-random,failure count-provider inner,1,55,7.586206896551724
+flow-random,failure count-provider inner,2,42,7.03448275862069
+flow-random,failure count-provider inner,3,46,7.06896551724138
+flow-random,failure count-provider inner,4,50,7.448275862068965
+flow-random,failure count-provider inner,5,58,7.068965517241381
+flow-random,failure count-provider inner,6,51,7.275862068965518
+flow-random,failure count-provider inner,7,35,7.172413793103449
+flow-random,failure count-provider inner,8,35,7.068965517241378
+flow-random,failure count-provider inner,9,52,7.241379310344828
+flow-random,failure count-provider inner,10,37,6.862068965517241
+flow-random,failure count-simi-global,1,59,7.413793103448276
+flow-random,failure count-simi-global,2,63,6.724137931034483
+flow-random,failure count-simi-global,3,47,7.13793103448276
+flow-random,failure count-simi-global,4,40,7.344827586206896
+flow-random,failure count-simi-global,5,46,7.586206896551724
+flow-random,failure count-simi-global,6,67,7.655172413793102
+flow-random,failure count-simi-global,7,48,7.551724137931035
+flow-random,failure count-simi-global,8,51,7.206896551724139
+flow-random,failure count-simi-global,9,52,7.206896551724139
+flow-random,failure count-simi-global,10,45,7.551724137931036
+flow-random,failure count-global,1,18,7.344827586206897
+flow-random,failure count-global,2,15,6.862068965517242
+flow-random,failure count-global,3,19,7.0344827586206895
+flow-random,failure count-global,4,23,6.689655172413793
+flow-random,failure count-global,5,19,7.413793103448277
+flow-random,failure count-global,6,15,7.1034482758620685
+flow-random,failure count-global,7,24,7.310344827586207
+flow-random,failure count-global,8,22,7.0344827586206895
+flow-random,failure count-global,9,11,7.3103448275862055
+flow-random,failure count-global,10,15,7.241379310344827
+flow-different,failure count-provider inner,1,49,6.068965517241379
+flow-different,failure count-provider inner,2,52,6.586206896551724
+flow-different,failure count-provider inner,3,31,5.96551724137931
+flow-different,failure count-provider inner,4,49,6.655172413793103
+flow-different,failure count-provider inner,5,42,6.413793103448276
+flow-different,failure count-provider inner,6,38,6.310344827586207
+flow-different,failure count-provider inner,7,31,6.172413793103448
+flow-different,failure count-provider inner,8,41,6.1034482758620685
+flow-different,failure count-provider inner,9,44,6.275862068965517
+flow-different,failure count-provider inner,10,34,5.827586206896552
+flow-different,failure count-simi-global,1,61,6.586206896551724
+flow-different,failure count-simi-global,2,43,6.06896551724138
+flow-different,failure count-simi-global,3,53,6.310344827586207
+flow-different,failure count-simi-global,4,32,5.931034482758621
+flow-different,failure count-simi-global,5,55,6.137931034482759
+flow-different,failure count-simi-global,6,54,6.551724137931036
+flow-different,failure count-simi-global,7,60,6.551724137931036
+flow-different,failure count-simi-global,8,31,6.172413793103448
+flow-different,failure count-simi-global,9,40,6.310344827586206
+flow-different,failure count-simi-global,10,53,6.448275862068966
+flow-different,failure count-global,1,7,5.137931034482758
+flow-different,failure count-global,2,7,5.1034482758620685
+flow-different,failure count-global,3,20,5.275862068965517
+flow-different,failure count-global,4,9,5.275862068965518
+flow-different,failure count-global,5,4,5.0344827586206895
+flow-different,failure count-global,6,11,5.344827586206896
+flow-different,failure count-global,7,8,5.1034482758620685
+flow-different,failure count-global,8,7,5.000000000000001
+flow-different,failure count-global,9,16,5.206896551724139
+flow-different,failure count-global,10,11,5.379310344827585
+flow-single,failure count-provider inner,1,36,6.620689655172415
+flow-single,failure count-provider inner,2,43,6.655172413793103
+flow-single,failure count-provider inner,3,44,6.9655172413793105
+flow-single,failure count-provider inner,4,26,7.310344827586207
+flow-single,failure count-provider inner,5,38,7.103448275862069
+flow-single,failure count-provider inner,6,54,6.379310344827586
+flow-single,failure count-provider inner,7,42,7.137931034482758
+flow-single,failure count-provider inner,8,48,6.482758620689656
+flow-single,failure count-provider inner,9,39,6.8965517241379315
+flow-single,failure count-provider inner,10,53,6.862068965517241
+flow-single,failure count-simi-global,1,43,7.310344827586207
+flow-single,failure count-simi-global,2,28,6.86206896551724
+flow-single,failure count-simi-global,3,41,6.586206896551725
+flow-single,failure count-simi-global,4,27,7.068965517241379
+flow-single,failure count-simi-global,5,33,6.724137931034482
+flow-single,failure count-simi-global,6,28,7.103448275862069
+flow-single,failure count-simi-global,7,31,7.517241379310345
+flow-single,failure count-simi-global,8,42,6.793103448275862
+flow-single,failure count-simi-global,9,51,7.413793103448277
+flow-single,failure count-simi-global,10,56,6.689655172413794
+flow-single,failure count-global,1,19,7.241379310344827
+flow-single,failure count-global,2,17,7.137931034482758
+flow-single,failure count-global,3,20,6.655172413793103
+flow-single,failure count-global,4,9,7.000000000000001
+flow-single,failure count-global,5,14,6.620689655172414
+flow-single,failure count-global,6,23,6.9655172413793105
+flow-single,failure count-global,7,29,6.655172413793103
+flow-single,failure count-global,8,14,6.96551724137931
+flow-single,failure count-global,9,14,7.551724137931034
+flow-single,failure count-global,10,12,6.965517241379311
+para-random,failure count-provider inner,1,50,7.137931034482758
+para-random,failure count-provider inner,2,46,7.413793103448276
+para-random,failure count-provider inner,3,47,7.344827586206896
+para-random,failure count-provider inner,4,50,6.862068965517241
+para-random,failure count-provider inner,5,59,7.172413793103448
+para-random,failure count-provider inner,6,53,7.068965517241379
+para-random,failure count-provider inner,7,31,7.379310344827586
+para-random,failure count-provider inner,8,42,7.241379310344827
+para-random,failure count-provider inner,9,33,7.03448275862069
+para-random,failure count-provider inner,10,52,7.724137931034483
+para-random,failure count-simi-global,1,41,7.0
+para-random,failure count-simi-global,2,61,6.9655172413793105
+para-random,failure count-simi-global,3,54,7.275862068965517
+para-random,failure count-simi-global,4,47,7.344827586206897
+para-random,failure count-simi-global,5,56,6.8275862068965525
+para-random,failure count-simi-global,6,48,7.137931034482759
+para-random,failure count-simi-global,7,42,7.03448275862069
+para-random,failure count-simi-global,8,52,6.862068965517242
+para-random,failure count-simi-global,9,36,6.655172413793104
+para-random,failure count-simi-global,10,45,7.206896551724138
+para-random,failure count-global,1,17,7.068965517241379
+para-random,failure count-global,2,20,7.0344827586206895
+para-random,failure count-global,3,19,7.344827586206898
+para-random,failure count-global,4,23,7.344827586206897
+para-random,failure count-global,5,21,6.8275862068965525
+para-random,failure count-global,6,20,7.0344827586206895
+para-random,failure count-global,7,20,6.8965517241379315
+para-random,failure count-global,8,12,7.13793103448276
+para-random,failure count-global,9,22,7.068965517241378
+para-random,failure count-global,10,19,7.06896551724138
+para-different,failure count-provider inner,1,35,6.000000000000001
+para-different,failure count-provider inner,2,48,6.1034482758620685
+para-different,failure count-provider inner,3,49,5.827586206896552
+para-different,failure count-provider inner,4,34,5.931034482758621
+para-different,failure count-provider inner,5,29,6.103448275862069
+para-different,failure count-provider inner,6,46,6.0
+para-different,failure count-provider inner,7,47,6.034482758620689
+para-different,failure count-provider inner,8,24,5.8965517241379315
+para-different,failure count-provider inner,9,54,6.413793103448276
+para-different,failure count-provider inner,10,45,6.172413793103448
+para-different,failure count-simi-global,1,52,6.03448275862069
+para-different,failure count-simi-global,2,32,5.793103448275861
+para-different,failure count-simi-global,3,41,6.068965517241381
+para-different,failure count-simi-global,4,59,6.241379310344827
+para-different,failure count-simi-global,5,56,5.862068965517242
+para-different,failure count-simi-global,6,35,6.0
+para-different,failure count-simi-global,7,38,6.137931034482759
+para-different,failure count-simi-global,8,31,5.7586206896551735
+para-different,failure count-simi-global,9,51,6.448275862068965
+para-different,failure count-simi-global,10,43,6.206896551724139
+para-different,failure count-global,1,14,5.068965517241379
+para-different,failure count-global,2,6,5.0344827586206895
+para-different,failure count-global,3,10,5.172413793103448
+para-different,failure count-global,4,12,5.344827586206896
+para-different,failure count-global,5,13,5.379310344827585
+para-different,failure count-global,6,13,5.379310344827586
+para-different,failure count-global,7,18,5.586206896551724
+para-different,failure count-global,8,8,5.172413793103448
+para-different,failure count-global,9,10,5.448275862068965
+para-different,failure count-global,10,8,5.206896551724137
+para-single,failure count-provider inner,1,55,6.827586206896552
+para-single,failure count-provider inner,2,41,6.689655172413793
+para-single,failure count-provider inner,3,37,6.758620689655173
+para-single,failure count-provider inner,4,42,6.862068965517242
+para-single,failure count-provider inner,5,46,7.0
+para-single,failure count-provider inner,6,55,6.379310344827586
+para-single,failure count-provider inner,7,47,6.482758620689655
+para-single,failure count-provider inner,8,38,6.965517241379311
+para-single,failure count-provider inner,9,35,7.241379310344827
+para-single,failure count-provider inner,10,36,7.137931034482759
+para-single,failure count-simi-global,1,56,6.344827586206896
+para-single,failure count-simi-global,2,42,6.931034482758621
+para-single,failure count-simi-global,3,48,6.137931034482759
+para-single,failure count-simi-global,4,39,6.862068965517242
+para-single,failure count-simi-global,5,47,6.931034482758621
+para-single,failure count-simi-global,6,40,6.655172413793104
+para-single,failure count-simi-global,7,58,7.03448275862069
+para-single,failure count-simi-global,8,31,7.034482758620691
+para-single,failure count-simi-global,9,38,6.931034482758622
+para-single,failure count-simi-global,10,47,6.896551724137931
+para-single,failure count-global,1,9,7.0
+para-single,failure count-global,2,18,6.724137931034484
+para-single,failure count-global,3,18,7.137931034482758
+para-single,failure count-global,4,18,7.103448275862069
+para-single,failure count-global,5,18,6.827586206896551
+para-single,failure count-global,6,14,7.482758620689656
+para-single,failure count-global,7,21,6.827586206896552
+para-single,failure count-global,8,19,6.965517241379311
+para-single,failure count-global,9,11,7.06896551724138
+para-single,failure count-global,10,19,6.896551724137931

@@ -27,10 +27,10 @@ para2name = {
     # inputStrategy
     "inputStrategy": "Attack-AccMgmt",
     "flow": "onebyone",
-    "para": "accpool",
+    "para": "pool",
     # allocateStrategy
     "allocateStrategy": "Attack-PlatSel",
-    "random": "random",
+    "random": "rand",
     "different": "diff",
     "single": "central",
     # detectAlgothms
@@ -80,7 +80,7 @@ def drawGraph1():
     df = pd.DataFrame(result)
     
     # 创建优化的气泡矩阵图 - 横向布局
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(10, 4))
     
     # 获取唯一的攻击策略和防御策略
     attack_methods = sorted(df['attackMethod'].unique())
@@ -95,7 +95,7 @@ def drawGraph1():
     def convert_defend_method(method):
         parts = method.replace('simi-global', 'simiglobal').split('-')
         if len(parts) == 2:
-            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+            return para2name.get(parts[1], parts[1])
         return method
 
     attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
@@ -116,7 +116,7 @@ def drawGraph1():
     def calculate_bubble_size(std_val, min_std, scale_factor):
         normalized_std = (std_val - min_std) / std_range if std_range > 0 else 0
         # 使用幂函数，指数为2，让大的值变得更大
-        power_size = (normalized_std ** 2) * scale_factor * 30 + 150
+        power_size = (normalized_std ** 2) * scale_factor * 10 + 150
         return power_size
     
     # 绘制气泡
@@ -133,7 +133,7 @@ def drawGraph1():
     
     # 设置坐标轴 - 横向布局
     ax.set_xticks([i for i in range(len(attack_methods_disp))])
-    ax.set_xticklabels(attack_methods_disp, rotation=45, ha='right', fontsize=10)
+    ax.set_xticklabels(attack_methods_disp, rotation=0, ha='center', fontsize=10)
     ax.set_yticks([i for i in range(len(defend_methods_disp))])
     ax.set_yticklabels(defend_methods_disp, fontsize=10)
     
@@ -145,8 +145,8 @@ def drawGraph1():
     ax.grid(True, alpha=0.2, linestyle='-', linewidth=0.5)
     
     # 设置标题和标签 - 横向布局
-    ax.set_title('Bubble Matrix Plot of Attack-Defense Strategy Combinations\n(Bubble Size: Standard Deviation, Color: Mean Value)', 
-                 fontsize=16, fontweight='bold', pad=20)
+    # ax.set_title('Bubble Matrix Plot of Attack-Defense Strategy Combinations\n(Bubble Size: Standard Deviation, Color: Mean Value)', 
+    #             fontsize=16, fontweight='bold', pad=20)
     ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold')
     ax.set_ylabel('Defense Strategy', fontsize=12, fontweight='bold')
     
@@ -186,8 +186,13 @@ def drawGraph1():
     print(f"Worst Strategy Combination (Max Mean): {df.loc[worst_mean_idx, 'attackMethod']} vs {df.loc[worst_mean_idx, 'defendMethod']} (mean: {df.loc[worst_mean_idx, 'mean']:.2f})")
 
 
-def drawGraph2():
-    """Draw heatmap of failure counts under different attack and defense strategies (in English)"""
+def drawGraph2(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, annot_fontsize=12):
+    """Draw heatmap of failure counts under different attack and defense strategies (in English)
+    colorbar_pad: 色条与热力图的间距
+    yticklabel_offset: 纵坐标标签名称与坐标轴的距离（单位为points）
+    xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
+    annot_fontsize: 热力图数字字体大小
+    """
     # 获取数据
     result = []
     for globalInputStrategy in para["inputStrategy"]:
@@ -227,7 +232,8 @@ def drawGraph2():
     def convert_defend_method(method):
         parts = method.replace('simi-global', 'simiglobal').split('-')
         if len(parts) == 2:
-            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+            # return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+            return para2name.get(parts[1], parts[1])
         return method
 
     attack_methods = sorted(df['attackMethod'].unique())
@@ -243,7 +249,7 @@ def drawGraph2():
             heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
 
     # 绘制热力图
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(10, 3))
     ax = sns.heatmap(
         heatmap_data,
         annot=True,
@@ -251,12 +257,14 @@ def drawGraph2():
         cmap='Reds',
         xticklabels=attack_methods_disp,
         yticklabels=defend_methods_disp,
-        cbar_kws={'label': 'Mean Failure Count'}
+        cbar_kws={'label': 'Avg. of Detected Count', 'pad': colorbar_pad}
     )
-    plt.title('Heatmap of Failure Counts for Attack-Defense Strategy Combinations', fontsize=16, fontweight='bold', pad=20)
-    plt.xlabel('Attack Strategy', fontsize=12, fontweight='bold')
-    plt.ylabel('Defense Strategy', fontsize=12, fontweight='bold')
-    plt.xticks(rotation=45, ha='right', fontsize=10)
+    # 调整热力图数字字体大小
+    for text in ax.texts:
+        text.set_fontsize(annot_fontsize)
+    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold', labelpad=xticklabel_offset)
+    ax.set_ylabel('Defense Strategy', fontsize=12, fontweight='bold', labelpad=yticklabel_offset)
+    plt.xticks(rotation=0, ha='center', fontsize=10)
     plt.tight_layout()
     plt.savefig('result/graph2_heatmap.png', dpi=300, bbox_inches='tight')
     # plt.show()
@@ -264,8 +272,13 @@ def drawGraph2():
     print(f"Failure Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
 
 
-def drawGraph3():
-    """绘制不同攻击策略和防御策略下的生成效果热力图（均值由Question.calcFinalScore给出）"""
+def drawGraph3(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, annot_fontsize=12):
+    """绘制不同攻击策略和防御策略下的生成效果热力图（均值由Question.calcFinalScore给出）
+    colorbar_pad: 色条与热力图的间距
+    yticklabel_offset: 纵坐标标签名称与坐标轴的距离（单位为points）
+    xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
+    annot_fontsize: 热力图数字字体大小
+    """
     result = []
     for globalInputStrategy in para["inputStrategy"]:
         for globalAllocateStrategy in para["allocateStrategy"]:
@@ -283,7 +296,20 @@ def drawGraph3():
                         questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
                     )
                     final_scores = [question_.calcFinalScore() for question_ in finalQuestionList]
-                    mean_final_score = np.mean(final_scores)
+                    
+                    # 归一化毒性值到0-1之间
+                    # 首先找出所有可能的最大毒性值
+                    # 根据Question.calcFinalScore()的实现，最大值是所有步骤中evaluateScoreMatrix的最大值之和
+                    max_possible_score = 0
+                    for model_name in evaluateScoreMatrix:
+                        # evaluateScoreMatrix[model_name]是一个列表，计算其所有元素之和
+                        model_max_score = sum(evaluateScoreMatrix[model_name])
+                        max_possible_score = max(max_possible_score, model_max_score)
+                    
+                    # 归一化处理
+                    normalized_scores = [score / max_possible_score if max_possible_score > 0 else 0 for score in final_scores]
+                    mean_final_score = np.mean(normalized_scores)
+                    
                     result.append(
                         {
                             "attackMethod": attackMethod,
@@ -304,7 +330,8 @@ def drawGraph3():
     def convert_defend_method(method):
         parts = method.replace('simi-global', 'simiglobal').split('-')
         if len(parts) == 2:
-            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+            # return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+            return para2name.get(parts[1], parts[1])
         return method
 
     attack_methods = sorted(df['attackMethod'].unique())
@@ -320,25 +347,27 @@ def drawGraph3():
             heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
 
     # 绘制热力图
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(10, 3))
     ax = sns.heatmap(
         heatmap_data,
         annot=True,
-        fmt='.1f',
-        cmap='Reds',
+        fmt='.2f',  # 更改为两位小数以显示归一化后的值
+        cmap='Blues',
         xticklabels=attack_methods_disp,
         yticklabels=defend_methods_disp,
-        cbar_kws={'label': 'Mean Final Score'}
+        cbar_kws={'label': 'Normalized Toxicity Score (0-1)', 'pad': colorbar_pad}  # 更新标签
     )
-    plt.title('Heatmap of Final Scores for Attack-Defense Strategy Combinations', fontsize=16, fontweight='bold', pad=20)
-    plt.xlabel('Attack Strategy', fontsize=12, fontweight='bold')
-    plt.ylabel('Defense Strategy', fontsize=12, fontweight='bold')
-    plt.xticks(rotation=45, ha='right', fontsize=10)
+    # 调整热力图数字字体大小
+    for text in ax.texts:
+        text.set_fontsize(annot_fontsize)
+    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold', labelpad=xticklabel_offset)
+    ax.set_ylabel('Defense Strategy', fontsize=12, fontweight='bold', labelpad=yticklabel_offset)
+    plt.xticks(rotation=0, ha='center', fontsize=10)
     plt.tight_layout()
     plt.savefig('result/graph3_finalscore_heatmap.png', dpi=300, bbox_inches='tight')
     # plt.show()
-    print("\n=== Heatmap of Final Scores Saved ===")
-    print(f"Final Score Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
+    print("\n=== Heatmap of Normalized Final Scores Saved ===")
+    print(f"Normalized Final Score Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
 
 
 def drawGraph4():
@@ -361,9 +390,20 @@ def drawGraph4():
                             punishment=globalPunishment,
                             questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
                         )
-                        # 统计总失败次数和题目质量
+                        
+                        # 计算归一化的最大可能毒性值
+                        max_possible_score = 0
+                        for model_name in evaluateScoreMatrix:
+                            # evaluateScoreMatrix[model_name]是一个列表，计算其所有元素之和
+                            model_max_score = sum(evaluateScoreMatrix[model_name])
+                            max_possible_score = max(max_possible_score, model_max_score)
+                            
+                        # 统计总失败次数和归一化的题目质量
                         total_fail = sum([q.countAllHistory()[1] for q in finalQuestionList])
-                        total_score = sum([q.calcFinalScore() for q in finalQuestionList])
+                        raw_scores = [q.calcFinalScore() for q in finalQuestionList]
+                        normalized_scores = [score / max_possible_score if max_possible_score > 0 else 0 for score in raw_scores]
+                        total_score = sum(normalized_scores)
+                        
                         result.append({
                             "attackMethod": attackMethod,
                             "defendMethod": defendMethod,
@@ -383,7 +423,7 @@ def drawGraph4():
     print("分组统计表已保存到 result/graph4_fail_vs_score_stat.csv")
 
 
-def drawGraph5(min_budget=15, max_budget=35):
+def drawGraph5(min_budget=0, max_budget=15):
     """账号预算 vs 成功问题数 折线图，颜色+marker均匀分布且唯一"""
     result = []
     budgets = list(range(min_budget, max_budget + 1))
@@ -397,7 +437,7 @@ def drawGraph5(min_budget=15, max_budget=35):
             for globalDetectAlgothms in para["detectAlgothms"]:
                 for globalDefendStrategy in para["defendStrategy"]:
                     attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
-                    defendMethod = globalDetectAlgothms + '-' + globalDefendStrategy
+                    defendMethod = globalDefendStrategy
                     def convert_method(method):
                         parts = method.split('-')
                         if len(parts) == 2:
@@ -431,21 +471,732 @@ def drawGraph5(min_budget=15, max_budget=35):
                         "success_counts": success_counts
                     })
     # 画图
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(10, 8))
     for idx, item in enumerate(result):
         color, marker = style_combos[idx % len(style_combos)]
         plt.plot(item['budgets'], item['success_counts'], label=item['label'],
                  color=color, marker=marker, markersize=7, linewidth=2)
+    
+    # 自动设置x轴范围：找出所有数据开始变化和结束变化的点
+    all_success_counts = [item['success_counts'] for item in result]
+    min_success = min([min(counts) for counts in all_success_counts])
+    max_success = max([max(counts) for counts in all_success_counts])
+    
+    # 寻找所有曲线中第一个变化点的前一个点
+    start_idx = max_budget
+    for item in result:
+        counts = item['success_counts']
+        for i in range(1, len(counts)):
+            if counts[i] > min_success:
+                start_idx = min(start_idx, i - 1)
+                break
+    
+    # 寻找所有曲线中最后一个变化点的后一个点
+    end_idx = 0
+    for item in result:
+        counts = item['success_counts']
+        for i in range(len(counts) - 2, -1, -1):
+            if counts[i] < max_success:
+                end_idx = max(end_idx, i + 2)  # 取变化点的后一个点
+                break
+    
+    # 设置x轴范围，确保不超出有效范围
+    start_idx = max(0, start_idx)
+    end_idx = min(len(budgets) - 1, end_idx)
+    plt.xlim(budgets[start_idx], budgets[end_idx])
+    
     plt.xlabel('Account Budget', fontsize=12, fontweight='bold')
     plt.ylabel('Number of Successful Questions', fontsize=12, fontweight='bold')
-    plt.title('Account Budget vs Number of Successful Questions', fontsize=16, fontweight='bold')
-    plt.legend(fontsize=8)
+    # plt.title('Account Budget vs Number of Successful Questions', fontsize=16, fontweight='bold')
+    plt.legend(fontsize=12, loc='lower right')
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.savefig('result/graph5_account_vs_success.png', dpi=300, bbox_inches='tight')
-    print(f"账号预算-成功问题数折线图已保存到 result/graph5_account_vs_success.png，预算范围：{min_budget}-{max_budget}")
+    print(f"账号预算-成功问题数折线图已保存到 result/graph5_account_vs_success.png，x轴自适应范围：{budgets[start_idx]}-{budgets[end_idx]}")
+
+
+def drawGraph6(min_budget=0, max_budget=15):
+    """账号预算 vs 成功问题数 折线图，颜色+marker均匀分布且唯一"""
+    P.N = 1
+    P.numQuestions = 10000
+    result = []
+    budgets = list(range(min_budget, max_budget + 1))
+    color_list = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    marker_list = ['o', 's', '^', 'D', 'P', '*', 'X', 'v', '<', '>', 'h', 'H', 'd', '|', '_']
+    style_combos = list(itertools.product(color_list, marker_list))
+    random.shuffle(style_combos)  # 打乱顺序，保证多样性
+
+    for globalInputStrategy in para["inputStrategy"]:
+        for globalAllocateStrategy in para["allocateStrategy"]:
+            for globalDetectAlgothms in para["detectAlgothms"]:
+                for globalDefendStrategy in para["defendStrategy"]:
+                    attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                    defendMethod = globalDefendStrategy
+                    def convert_method(method):
+                        parts = method.split('-')
+                        if len(parts) == 2:
+                            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+                        return method
+                    attack_label = convert_method(attackMethod)
+                    defend_label = convert_method(defendMethod.replace('simi-global', 'simiglobal'))
+                    label = f"{attack_label} | {defend_label}"
+                    globalPunishment = 'account'
+                    finalQuestionList = process(
+                        inputStrategy=globalInputStrategy,
+                        allocateStrategy=globalAllocateStrategy,
+                        detectAlgothms=globalDetectAlgothms,
+                        defendStrategy=globalDefendStrategy,
+                        punishment=globalPunishment,
+                        questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
+                    )
+                    account_needed_list = []
+                    for q in finalQuestionList:
+                        provider_count = sum(q.countBaseAccountNum().values())
+                        warning_count = q.countWarningHistory()
+                        account_needed = provider_count + warning_count
+                        account_needed_list.append(account_needed)
+                    success_counts = []
+                    # print(f"account_needed_list = {account_needed_list}")
+                    for budget in budgets:
+                        success_count = sum(1 for acc in account_needed_list if acc <= budget)
+                        success_counts.append(success_count)
+                    result.append({
+                        "label": label,
+                        "budgets": budgets,
+                        "success_counts": success_counts
+                    })
+    # 画图
+    plt.figure(figsize=(10, 8))
+    for idx, item in enumerate(result):
+        color, marker = style_combos[idx % len(style_combos)]
+        plt.plot(item['budgets'], item['success_counts'], label=item['label'],
+                 color=color, marker=marker, markersize=7, linewidth=2)
+    
+    # 自动设置x轴范围：找出所有数据开始变化和结束变化的点
+    all_success_counts = [item['success_counts'] for item in result]
+    min_success = min([min(counts) for counts in all_success_counts])
+    max_success = max([max(counts) for counts in all_success_counts])
+    
+    # 寻找所有曲线中第一个变化点的前一个点
+    start_idx = max_budget
+    for item in result:
+        counts = item['success_counts']
+        for i in range(1, len(counts)):
+            if counts[i] > min_success:
+                start_idx = min(start_idx, i - 1)
+                break
+    
+    # 寻找所有曲线中最后一个变化点的后一个点
+    end_idx = 0
+    for item in result:
+        counts = item['success_counts']
+        for i in range(len(counts) - 2, -1, -1):
+            if counts[i] < max_success:
+                end_idx = max(end_idx, i + 2)  # 取变化点的后一个点
+                break
+    
+    # 设置x轴范围，确保不超出有效范围
+    start_idx = max(0, start_idx)
+    end_idx = min(len(budgets) - 1, end_idx)
+    plt.xlim(budgets[start_idx], budgets[end_idx])
+    
+    plt.xlabel('Account Budget', fontsize=12, fontweight='bold')
+    plt.ylabel('Number of Successful Questions', fontsize=12, fontweight='bold')
+    # plt.title('Account Budget vs Number of Successful Questions', fontsize=16, fontweight='bold')
+    plt.legend(fontsize=12, loc='lower right')
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('result/graph6_account_vs_success.png', dpi=300, bbox_inches='tight')
+    print(f"账号预算-成功问题数折线图已保存到 result/graph6_account_vs_success.png，x轴自适应范围：{budgets[start_idx]}-{budgets[end_idx]}")
+
+
+def drawGraph7(min_budget=0, max_budget=25):
+    """
+    重写的drawGraph7: 
+    绘制不同账号预算下不同banbar（禁用概率）下的可解决问题数量
+    - banbar取值：0.3, 0.5
+    - 封号限制强度(P.N)：1, 30, 100
+    - P.N=1和P.N=100构成阴影区域，P.N=30画成实线
+    - 最终呈现两条曲线（banbar=0.3和banbar=0.5），每条被阴影包围
+    """
+    # 设置参数
+    banbar_values = [0, 0.3, 0.5]
+    PN_values = [1, 30, 100]
+    budgets = list(range(min_budget, max_budget + 1))
+    
+    # 临时保存原始设置
+    original_num_questions = P.numQuestions
+    original_N = P.N
+    P.numQuestions = 1000
+    
+    # 存储所有结果数据
+    all_results = {}
+    
+    print("开始计算不同banbar和P.N组合下的数据...")
+    
+    # 遍历所有banbar和P.N的组合
+    for banbar in banbar_values:
+        all_results[banbar] = {}
+        print(f"计算banbar={banbar}的数据...")
+        
+        for pn_value in PN_values:
+            P.N = pn_value
+            print(f"  计算P.N={pn_value}的数据...")
+            
+            # 存储当前组合下所有攻防策略的结果
+            strategy_results = []
+            
+            for globalInputStrategy in para["inputStrategy"]:
+                for globalAllocateStrategy in para["allocateStrategy"]:
+                    for globalDetectAlgothms in para["detectAlgothms"]:
+                        for globalDefendStrategy in para["defendStrategy"]:
+                            globalPunishment = 'account'
+                            
+                            # 运行3次实验取平均
+                            experiment_results = []
+                            for _ in range(3):
+                                finalQuestionList = process(
+                                    inputStrategy=globalInputStrategy,
+                                    allocateStrategy=globalAllocateStrategy,
+                                    detectAlgothms=globalDetectAlgothms,
+                                    defendStrategy=globalDefendStrategy,
+                                    punishment=globalPunishment,
+                                    questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
+                                    banbar=banbar
+                                )
+                                
+                                # 计算每个预算下的成功问题数
+                                account_needed_list = []
+                                for q in finalQuestionList:
+                                    provider_count = sum(q.countBaseAccountNum().values())
+                                    warning_count = q.countWarningHistory()
+                                    account_needed = provider_count + warning_count
+                                    account_needed_list.append(account_needed)
+                                
+                                success_counts = []
+                                for budget in budgets:
+                                    success_count = sum(1 for acc in account_needed_list if acc <= budget)
+                                    success_counts.append(success_count)
+                                
+                                experiment_results.append(success_counts)
+                            
+                            strategy_results.append(experiment_results)
+            
+            # 计算当前banbar和P.N组合下的平均值
+            mean_values = []
+            for budget_idx in range(len(budgets)):
+                all_values = []
+                for strategy_exp in strategy_results:
+                    for exp_result in strategy_exp:
+                        all_values.append(exp_result[budget_idx])
+                mean_values.append(np.mean(all_values))
+            
+            all_results[banbar][pn_value] = mean_values
+    
+    # 绘制图形
+    plt.figure(figsize=(9, 4))
+    
+    # 为不同banbar值分别绘制图形
+    colors = ['green', 'blue', 'red']  # banbar=0用绿色，banbar=0.3用蓝色，banbar=0.5用红色
+    
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i % len(colors)]  # 使用模运算避免索引超出范围
+        
+        # 获取当前banbar下三个P.N值的数据
+        pn1_data = all_results[banbar][1]     # P.N=1
+        pn30_data = all_results[banbar][30]   # P.N=30
+        pn100_data = all_results[banbar][100] # P.N=100
+        
+        # 绘制P.N=30的实线
+        plt.plot(budgets, pn30_data, color=color, linewidth=3, 
+                label=f'banbar={banbar} (P.N=30)', marker='o', markersize=6)
+        
+        # 绘制P.N=1和P.N=100之间的阴影区域
+        upper_bound = np.maximum(pn1_data, pn100_data)
+        lower_bound = np.minimum(pn1_data, pn100_data)
+        plt.fill_between(budgets, lower_bound, upper_bound, 
+                        color=color, alpha=0.2, 
+                        label=f'banbar={banbar} Range (P.N=1~100)')
+        
+        # 可选：也绘制P.N=1和P.N=100的边界线（虚线）
+        plt.plot(budgets, pn1_data, color=color, linewidth=1, 
+                linestyle='--', alpha=0.6)
+        plt.plot(budgets, pn100_data, color=color, linewidth=1, 
+                linestyle='--', alpha=0.6)
+    
+    # 改进的自适应设置x轴范围
+    all_data = []
+    for banbar in banbar_values:
+        for pn_value in PN_values:
+            all_data.extend(all_results[banbar][pn_value])
+    
+    # 寻找数据开始变化的点
+    start_idx = 0
+    for banbar in banbar_values:
+        for pn_value in PN_values:
+            data = all_results[banbar][pn_value]
+            for i in range(1, len(data)):
+                if data[i] > data[0] + 1:
+                    start_idx = max(0, i - 2)
+                    break
+            break
+        break
+    
+    # 改进的收敛检测算法
+    def is_converged(data, window_size=6, threshold_ratio=0.01):
+        """检测曲线是否真正收敛"""
+        if len(data) < window_size + 2:
+            return False
+        
+        # 检查最后window_size个点的变化
+        last_window = data[-window_size:]
+        total_range = max(data) - min(data)
+        
+        # 如果总范围为0，认为已收敛
+        if total_range == 0:
+            return True
+        
+        # 检查最后几个点的变化率
+        window_variation = max(last_window) - min(last_window)
+        variation_ratio = window_variation / total_range
+        
+        # 同时检查斜率是否接近0
+        if len(last_window) >= 3:
+            # 计算最后几个点的平均斜率
+            slopes = []
+            for i in range(len(last_window) - 1):
+                slope = abs(last_window[i+1] - last_window[i])
+                slopes.append(slope)
+            avg_slope = np.mean(slopes)
+            slope_ratio = avg_slope / (total_range / len(data)) if total_range > 0 else 0
+            
+            # 变化率小且斜率小，认为收敛
+            return variation_ratio < threshold_ratio and slope_ratio < 0.02
+        
+        return variation_ratio < threshold_ratio
+    
+    # 寻找真正收敛的点
+    end_idx = len(budgets) - 1
+    convergence_found = False
+    
+    # 检查所有曲线是否都收敛
+    for budget_idx in range(len(budgets) - 1, max(len(budgets)//2, 10), -1):
+        all_converged = True
+        for banbar in banbar_values:
+            for pn_value in PN_values:
+                data = all_results[banbar][pn_value]
+                partial_data = data[:budget_idx+1]
+                if not is_converged(partial_data):
+                    all_converged = False
+                    break
+            if not all_converged:
+                break
+        
+        if all_converged:
+            end_idx = min(len(budgets) - 1, budget_idx + 3)  # 在收敛点后再显示3个点
+            convergence_found = True
+            break
+    
+    # 如果没有找到收敛点，或者收敛点太早，显示更多数据
+    if not convergence_found or end_idx - start_idx < 15:
+        # 使用更宽松的标准，寻找变化很小的区域
+        for budget_idx in range(len(budgets) - 1, max(len(budgets)*2//3, 15), -1):
+            max_recent_change = 0
+            for banbar in banbar_values:
+                for pn_value in PN_values:
+                    data = all_results[banbar][pn_value]
+                    if budget_idx >= 6 and budget_idx < len(data):
+                        recent_change = abs(data[budget_idx] - data[budget_idx-3])
+                        total_range = max(data) - min(data)
+                        if total_range > 0:
+                            change_ratio = recent_change / total_range
+                            max_recent_change = max(max_recent_change, change_ratio)
+            
+            # 如果最大变化率小于1%，认为可以截断
+            if max_recent_change < 0.01:
+                end_idx = min(len(budgets) - 1, budget_idx + 4)
+                break
+    
+    # 确保显示范围合理
+    start_idx = max(0, start_idx)
+    end_idx = min(len(budgets) - 1, end_idx)
+    
+    # 确保至少显示足够的点来观察趋势
+    if end_idx - start_idx < 12:
+        end_idx = min(len(budgets) - 1, start_idx + 15)
+    
+    plt.xlim(budgets[start_idx], budgets[end_idx])
+    
+    # 设置图表属性
+    plt.xlabel('Account Budget', fontsize=12, fontweight='bold')
+    plt.ylabel('Number of Successful Questions', fontsize=12, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+    # plt.legend(fontsize=10, loc='lower right')  # 注释掉图例显示
+    
+    # 设置横坐标为整数
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    
+    plt.tight_layout()
+    
+    # 保存图表
+    plt.savefig('result/graph7_pn_vs_budget_success.png', dpi=300, bbox_inches='tight')
+    print(f"重写的图表已保存到 result/graph7_pn_vs_budget_success.png")
+    print(f"显示的账号预算范围：{budgets[start_idx]}-{budgets[end_idx]}")
+    
+    # 恢复原始设置
+    P.numQuestions = original_num_questions
+    P.N = original_N
+
+
+def drawGraph8(min_budget=0, max_budget=25):
+    """
+    drawGraph8: 基于drawGraph7但y轴改为问题历史记录总长度
+    绘制不同账号预算下不同banbar（禁用概率）下的问题历史记录总长度
+    - banbar取值：0, 0.3, 0.5
+    - 封号限制强度(P.N)：1, 30, 100
+    - P.N=1和P.N=100构成阴影区域，P.N=30画成实线
+    - 最终呈现三条曲线（banbar=0, 0.3和0.5），每条被阴影包围
+    """
+    # 设置参数
+    banbar_values = [0, 0.3, 0.5]
+    PN_values = [1, 30, 100]
+    budgets = list(range(min_budget, max_budget + 1))
+    
+    # 临时保存原始设置
+    original_num_questions = P.numQuestions
+    original_N = P.N
+    P.numQuestions = 1000
+    
+    # 存储所有结果数据
+    all_results = {}
+    
+    print("开始计算不同banbar和P.N组合下的历史记录长度数据...")
+    
+    # 遍历所有banbar和P.N的组合
+    for banbar in banbar_values:
+        all_results[banbar] = {}
+        print(f"计算banbar={banbar}的数据...")
+        
+        for pn_value in PN_values:
+            P.N = pn_value
+            print(f"  计算P.N={pn_value}的数据...")
+            
+            # 存储当前组合下所有攻防策略的结果
+            strategy_results = []
+            
+            for globalInputStrategy in para["inputStrategy"]:
+                for globalAllocateStrategy in para["allocateStrategy"]:
+                    for globalDetectAlgothms in para["detectAlgothms"]:
+                        for globalDefendStrategy in para["defendStrategy"]:
+                            globalPunishment = 'account'
+                            
+                            # 运行3次实验取平均
+                            experiment_results = []
+                            for _ in range(3):
+                                finalQuestionList = process(
+                                    inputStrategy=globalInputStrategy,
+                                    allocateStrategy=globalAllocateStrategy,
+                                    detectAlgothms=globalDetectAlgothms,
+                                    defendStrategy=globalDefendStrategy,
+                                    punishment=globalPunishment,
+                                    questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
+                                    banbar=banbar
+                                )
+                                
+                                # 计算每个预算下的历史记录总长度
+                                history_lengths = []
+                                for budget in budgets:
+                                    total_history_length = 0
+                                    
+                                    for q in finalQuestionList:
+                                        provider_count = sum(q.countBaseAccountNum().values())
+                                        warning_count = q.countWarningHistory()
+                                        account_needed = provider_count + warning_count
+                                        
+                                        # 计算这个问题的完整历史记录长度
+                                        full_history_length = sum(q.countAllHistory()) + len(q.countBaseAccountNum())
+                                        
+                                        if budget == 0:
+                                            # 预算为0时，没有历史记录
+                                            pass
+                                        elif account_needed <= budget:
+                                            # 预算足够时，计算完整的历史记录
+                                            total_history_length += full_history_length
+                                        else:
+                                            # 预算不够时，按比例计算能执行的操作的历史记录
+                                            if account_needed > 0:
+                                                ratio = min(budget / account_needed, 1.0)
+                                                partial_history = full_history_length * ratio
+                                                total_history_length += partial_history
+                                    
+                                    history_lengths.append(total_history_length)
+                                
+                                experiment_results.append(history_lengths)
+                            
+                            strategy_results.append(experiment_results)
+            
+            # 计算当前banbar和P.N组合下的平均值
+            mean_values = []
+            for budget_idx in range(len(budgets)):
+                all_values = []
+                for strategy_exp in strategy_results:
+                    for exp_result in strategy_exp:
+                        all_values.append(exp_result[budget_idx])
+                mean_values.append(np.mean(all_values))
+            
+            all_results[banbar][pn_value] = mean_values
+    
+    # 绘制图形
+    plt.figure(figsize=(6, 4))
+    
+    # 为不同banbar值分别绘制图形
+    colors = ['green', 'blue', 'red']  # banbar=0用绿色，banbar=0.3用蓝色，banbar=0.5用红色
+    
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i % len(colors)]  # 使用模运算避免索引超出范围
+        
+        # 获取当前banbar下三个P.N值的数据
+        pn1_data = all_results[banbar][1]     # P.N=1
+        pn30_data = all_results[banbar][30]   # P.N=30
+        pn100_data = all_results[banbar][100] # P.N=100
+        
+        # 绘制P.N=30的实线
+        plt.plot(budgets, pn30_data, color=color, linewidth=3, 
+                label=f'banbar={banbar} (P.N=30)', marker='o', markersize=6)
+        
+        # 绘制P.N=1和P.N=100之间的阴影区域
+        upper_bound = np.maximum(pn1_data, pn100_data)
+        lower_bound = np.minimum(pn1_data, pn100_data)
+        plt.fill_between(budgets, lower_bound, upper_bound, 
+                        color=color, alpha=0.2, 
+                        label=f'banbar={banbar} Range (P.N=1~100)')
+        
+        # 可选：也绘制P.N=1和P.N=100的边界线（虚线）
+        plt.plot(budgets, pn1_data, color=color, linewidth=1, 
+                linestyle='--', alpha=0.6)
+        plt.plot(budgets, pn100_data, color=color, linewidth=1, 
+                linestyle='--', alpha=0.6)
+    
+    # 改进的自适应设置x轴范围
+    all_data = []
+    for banbar in banbar_values:
+        for pn_value in PN_values:
+            all_data.extend(all_results[banbar][pn_value])
+    
+    # 寻找数据开始变化的点
+    start_idx = 0
+    for banbar in banbar_values:
+        for pn_value in PN_values:
+            data = all_results[banbar][pn_value]
+            for i in range(1, len(data)):
+                if data[i] > data[0] + 1:
+                    start_idx = max(0, i - 2)
+                    break
+            break
+        break
+    
+    # 改进的收敛检测算法
+    def is_converged(data, window_size=6, threshold_ratio=0.01):
+        """检测曲线是否真正收敛"""
+        if len(data) < window_size + 2:
+            return False
+        
+        # 检查最后window_size个点的变化
+        last_window = data[-window_size:]
+        total_range = max(data) - min(data)
+        
+        # 如果总范围为0，认为已收敛
+        if total_range == 0:
+            return True
+        
+        # 检查最后几个点的变化率
+        window_variation = max(last_window) - min(last_window)
+        variation_ratio = window_variation / total_range
+        
+        # 同时检查斜率是否接近0
+        if len(last_window) >= 3:
+            # 计算最后几个点的平均斜率
+            slopes = []
+            for i in range(len(last_window) - 1):
+                slope = abs(last_window[i+1] - last_window[i])
+                slopes.append(slope)
+            avg_slope = np.mean(slopes)
+            slope_ratio = avg_slope / (total_range / len(data)) if total_range > 0 else 0
+            
+            # 变化率小且斜率小，认为收敛
+            return variation_ratio < threshold_ratio and slope_ratio < 0.02
+        
+        return variation_ratio < threshold_ratio
+    
+    # 寻找真正收敛的点
+    end_idx = len(budgets) - 1
+    convergence_found = False
+    
+    # 检查所有曲线是否都收敛
+    for budget_idx in range(len(budgets) - 1, max(len(budgets)//2, 10), -1):
+        all_converged = True
+        for banbar in banbar_values:
+            for pn_value in PN_values:
+                data = all_results[banbar][pn_value]
+                partial_data = data[:budget_idx+1]
+                if not is_converged(partial_data):
+                    all_converged = False
+                    break
+            if not all_converged:
+                break
+        
+        if all_converged:
+            end_idx = min(len(budgets) - 1, budget_idx + 3)  # 在收敛点后再显示3个点
+            convergence_found = True
+            break
+    
+    # 如果没有找到收敛点，或者收敛点太早，显示更多数据
+    if not convergence_found or end_idx - start_idx < 15:
+        # 使用更宽松的标准，寻找变化很小的区域
+        for budget_idx in range(len(budgets) - 1, max(len(budgets)*2//3, 15), -1):
+            max_recent_change = 0
+            for banbar in banbar_values:
+                for pn_value in PN_values:
+                    data = all_results[banbar][pn_value]
+                    if budget_idx >= 6 and budget_idx < len(data):
+                        recent_change = abs(data[budget_idx] - data[budget_idx-3])
+                        total_range = max(data) - min(data)
+                        if total_range > 0:
+                            change_ratio = recent_change / total_range
+                            max_recent_change = max(max_recent_change, change_ratio)
+            
+            # 如果最大变化率小于3%，认为可以截断
+            if max_recent_change < 0.01:
+                end_idx = min(len(budgets) - 1, budget_idx + 4)
+                break
+    
+    # 确保显示范围合理
+    start_idx = max(0, start_idx)
+    end_idx = min(len(budgets) - 1, end_idx)
+    
+    # 确保至少显示足够的点来观察趋势
+    if end_idx - start_idx < 12:
+        end_idx = min(len(budgets) - 1, start_idx + 15)
+    
+    plt.xlim(budgets[start_idx], budgets[end_idx])
+    
+    # 设置图表属性
+    plt.xlabel('Account Budget', fontsize=12, fontweight='bold')
+    plt.ylabel('API Call Count', fontsize=12, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+    # plt.legend(fontsize=10, loc='lower right')  # 注释掉图例显示
+    
+    # 设置横坐标为整数
+    ax = plt.gca()
+    ax.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
+    
+    plt.tight_layout()
+    
+    # 保存图表
+    plt.savefig('result/graph8_history_length.png', dpi=300, bbox_inches='tight')
+    print(f"历史记录长度图表已保存到 result/graph8_history_length.png")
+    print(f"显示的账号预算范围：{budgets[start_idx]}-{budgets[end_idx]}")
+    
+    # 恢复原始设置
+    P.numQuestions = original_num_questions
+    P.N = original_N
+
+
+def drawGraph7Legend():
+    """
+    为图7单独绘制图例
+    """
+    fig, ax = plt.subplots(figsize=(8, 3))  # 调整尺寸以适应两列布局
+    ax.axis('off')  # 隐藏坐标轴
+    
+    # 创建图例项
+    banbar_values = [0, 0.3, 0.5]
+    colors = ['green', 'blue', 'red']
+    
+    # 创建所有图例元素，按照线段和阴影的顺序交替排列
+    legend_elements = []
+    
+    # 先添加所有线段图例
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i]
+        # 根据banbar值设置不同的标签文本
+        if banbar == 0:
+            label_text = f'No filtering (Banning Threshold=30)'
+        else:
+            label_text = f'filter rate={banbar} (Banning Threshold=30)'
+            
+        line = plt.Line2D([0], [0], color=color, linewidth=3, 
+                         label=label_text, marker='o', markersize=6)
+        legend_elements.append(line)
+    
+    # 再添加所有阴影图例
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i]
+        # 根据banbar值设置不同的标签文本
+        if banbar == 0:
+            label_text = f'No filtering Range (Banning Threshold=1~100)'
+        else:
+            label_text = f'filter rate={banbar} Range (Banning Threshold=1~100)'
+            
+        patch = plt.Rectangle((0, 0), 1, 1, facecolor=color, alpha=0.2, 
+                            label=label_text)
+        legend_elements.append(patch)
+    
+    # 创建单个图例，使用两列布局
+    ax.legend(handles=legend_elements, fontsize=10, loc='center', 
+             frameon=True, fancybox=True, shadow=True, ncol=2)
+    
+    plt.tight_layout(pad=0.1)  # 减少边距
+    plt.savefig('result/graph7_legend.png', dpi=300, bbox_inches='tight', pad_inches=0.05)
+    print("图7图例已保存到 result/graph7_legend.png")
+    plt.close()
+
+
+def drawGraph8Legend():
+    """
+    为图8单独绘制图例
+    """
+    fig, ax = plt.subplots(figsize=(6, 4))  # 改为更长更窄的尺寸
+    ax.axis('off')  # 隐藏坐标轴
+    
+    # 创建图例项
+    banbar_values = [0, 0.3, 0.5]
+    colors = ['green', 'blue', 'red']
+    
+    legend_elements = []
+    
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i]
+        # 实线图例 - 使用学术化术语
+        line = plt.Line2D([0], [0], color=color, linewidth=3, 
+                         label=f'Account Ban Probability={banbar} (Detection Threshold=30)', marker='o', markersize=6)
+        legend_elements.append(line)
+        
+        # 阴影区域图例 - 使用学术化术语
+        patch = plt.Rectangle((0, 0), 1, 1, facecolor=color, alpha=0.2, 
+                            label=f'Account Ban Probability={banbar} Range (Detection Threshold=1~100)')
+        legend_elements.append(patch)
+    
+    # 绘制图例 - 水平排列
+    ax.legend(handles=legend_elements, fontsize=10, loc='center', 
+             frameon=True, fancybox=True, shadow=True, ncol=1)
+    
+    plt.tight_layout(pad=0.1)  # 减少边距
+    plt.savefig('result/graph8_legend.png', dpi=300, bbox_inches='tight', pad_inches=0.05)
+    print("图8图例已保存到 result/graph8_legend.png")
+    plt.close()
 
 
 if __name__ == '__main__':
-    drawGraph5()    
+    # drawGraph1()
+    # drawGraph2()
+    drawGraph3()
+    drawGraph4()
+    # drawGraph5()
+    # drawGraph6()
+    # drawGraph7()
+    # drawGraph8()
+    # drawGraph7Legend()
+    # drawGraph8Legend()
 
