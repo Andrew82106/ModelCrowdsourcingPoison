@@ -106,9 +106,10 @@ class Question(MetaFunction):
         return successfulCount, failureCount
     
     def countWarningHistory(self):
-        warningCount = 0
+        return self.cost['account']
+        """warningCount = 0
         for history in self.history:
             if history['warning']:
                 warningCount += 1
-        return warningCount
+        return warningCount"""
     

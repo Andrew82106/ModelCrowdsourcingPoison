@@ -49,7 +49,7 @@ def failureCount(defendStrategy: str, question: Question, modelName: str, banbar
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)  # 被拒绝概率
         if (random.randint(1, 10)/10) < PReject:
             result = True  # 被拒绝
-            if FailCount + 1 > P.N:
+            if FailCount + 1 > P.N + P.N*question.cost['account']:
                 # print(f"P.N = {P.N}")
                 warning = True
     elif defendStrategy == 'simi-global':
@@ -57,7 +57,7 @@ def failureCount(defendStrategy: str, question: Question, modelName: str, banbar
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)
         if (random.randint(1, 10)/10) < PReject:
             result = True
-            if FailCount + 1 > P.N:
+            if FailCount + 1 > P.N + P.N*question.cost['account']:
                 # print(f"P.N = {P.N}")
                 warning = True
     elif defendStrategy == 'global':
@@ -65,7 +65,7 @@ def failureCount(defendStrategy: str, question: Question, modelName: str, banbar
         PReject = P.rejectMatrix[modelName][question.step]
         if (random.randint(1, 10)/10) < PReject:
             result = True
-            if FailCount + 1 > P.N:
+            if FailCount + 1 > P.N + P.N*question.cost['account']:
                 # print(f"P.N = {P.N}")
                 warning = True
     return result, warning
@@ -171,10 +171,11 @@ def dealQuestion(
 
 
 def punish(cost: dict, punishment: str):
-    if punishment == 'time':
+    """if punishment == 'time':
         cost['time'] += P.punishmentTime
     elif punishment == 'account':
-        cost['account'] += 1
+        cost['account'] += 1"""
+    cost['account'] += 1
 
     return cost
 
@@ -206,6 +207,7 @@ def processLevel(
             modelType = "FMs"
     
     for modelName in modelList:
+        # print(f"question.cost: {question.cost}, countWarningHistory: {question.countWarningHistory()}, {question.countCountryHistory('Chi')}, {question.countProviderHistory('tongyi')}, {question.countAllHistory()}")
         question, result, warning = dealQuestion(
             modelName=modelName,
             question=question,

@@ -34,7 +34,7 @@ LLMCrowdPackets/
 
 | **方法**                      | **中文全称** | **英文全称**                      | **缩写** |
 | --------------------------- | -------- | --------------------------------- | ------ |
-| `inputStrategy`             | **问题输入策略**   | **Account Management Strategy** |Attack-AccMgmt     |
+| `inputStrategy`             | **问题输入策略**   | **Question Management Strategy** |Question-AccMgmt     |
 | `flow`                      | 流式输入策略       | One-by-One Account Strategy         | onebyone    |
 | `para`                      | 账户池策略       | Account Pool           | accpool    |
 | `allocateStrategy`          | **平台选择策略**     | **Platform Select Strategy**  | Attack-PlatSel    |

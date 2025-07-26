@@ -193,6 +193,8 @@ def drawGraph2(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
     xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
     annot_fontsize: 热力图数字字体大小
     """
+    P.numQuestions = 100
+    P.N = 3
     # 获取数据
     result = []
     for globalInputStrategy in para["inputStrategy"]:
@@ -210,8 +212,23 @@ def drawGraph2(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
                         punishment=globalPunishment,
                         questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
                     )
-                    fail_counts = [question_.countAllHistory()[1] for question_ in finalQuestionList]
-                    mean_fail = np.mean(fail_counts)
+                    if globalDefendStrategy == "global":
+                        fail_counts = [(question_.countAllHistory()[1] // P.N) for question_ in finalQuestionList]
+                        mean_fail = np.mean(fail_counts)
+                    elif globalDefendStrategy == "simi-global":
+                        # fail_counts = [question_.countCountryHistory('Chi')[1] for question_ in finalQuestionList] + [question_.countProviderHistory('For')[1] for question_ in finalQuestionList]
+                        mean_fail = np.mean([(question_.countCountryHistory('Chi')[1] // P.N) for question_ in finalQuestionList]) + np.mean([(question_.countProviderHistory('For')[1]) / 2 for question_ in finalQuestionList])
+                        mean_fail = mean_fail / 2
+                    elif globalDefendStrategy == "provider inner":
+                        mean_fail = 0
+                        for provider  in ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']:
+                            mean_fail += np.mean([(question_.countProviderHistory(provider)[1] // P.N) for question_ in finalQuestionList])
+                        mean_fail = mean_fail / 5
+
+                    else:
+                        raise Exception(f"Invalid defend strategy {globalDefendStrategy}")
+                    # mean_fail = np.mean(fail_counts)
+                    print(f"attack method: {attackMethod}, defend method: {defendMethod}, mean fail: {mean_fail}")
                     result.append(
                         {
                             "attackMethod": attackMethod,
@@ -279,6 +296,7 @@ def drawGraph3(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
     xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
     annot_fontsize: 热力图数字字体大小
     """
+    P.numQuestions = 100
     result = []
     for globalInputStrategy in para["inputStrategy"]:
         for globalAllocateStrategy in para["allocateStrategy"]:
@@ -1190,9 +1208,9 @@ def drawGraph8Legend():
 
 if __name__ == '__main__':
     # drawGraph1()
-    # drawGraph2()
+    drawGraph2()
     drawGraph3()
-    drawGraph4()
+    # drawGraph4()
     # drawGraph5()
     # drawGraph6()
     # drawGraph7()

@@ -4,6 +4,7 @@ class MetaFunction:
 
     @staticmethod
     def findModelProvider(modelName: str):
+        # ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']
         # if "GPT" in modelName:
         if modelName.startswith('GPT'):
             return 'openAI'
