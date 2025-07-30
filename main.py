@@ -62,7 +62,7 @@ def failureCount(defendStrategy: str, question: Question, modelName: str, banbar
                 warning = True
     elif defendStrategy == 'global':
         SuccessCount, FailCount = question.countAllHistory()
-        PReject = P.rejectMatrix[modelName][question.step]
+        PReject = max(P.rejectMatrix[modelName][question.step], banbar)
         if (random.randint(1, 10)/10) < PReject:
             result = True
             if FailCount + 1 > P.N + P.N*question.cost['account']:

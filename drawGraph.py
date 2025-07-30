@@ -1209,7 +1209,7 @@ def drawGraph8Legend():
 
 if __name__ == '__main__':
     # drawGraph1()
-    # drawGraph2()
+    drawGraph2()
     drawGraph3()
     # drawGraph4()
     # drawGraph5()
