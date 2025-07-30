@@ -221,7 +221,7 @@ def drawGraph2(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
                         mean_fail = mean_fail / 2
                     elif globalDefendStrategy == "provider inner":
                         mean_fail = 0
-                        for provider  in ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']:
+                        for provider in ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']:
                             mean_fail += np.mean([(question_.countProviderHistory(provider)[1] // P.N) for question_ in finalQuestionList])
                         mean_fail = mean_fail / 5
 
@@ -352,6 +352,7 @@ def drawGraph3(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
             return para2name.get(parts[1], parts[1])
         return method
 
+    print(f"mean final = {sum(df['mean_final_score'])/len(df)}")
     attack_methods = sorted(df['attackMethod'].unique())
     defend_methods = sorted(df['defendMethod'].unique())
     attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
@@ -1208,7 +1209,7 @@ def drawGraph8Legend():
 
 if __name__ == '__main__':
     # drawGraph1()
-    drawGraph2()
+    # drawGraph2()
     drawGraph3()
     # drawGraph4()
     # drawGraph5()
