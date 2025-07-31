@@ -65,7 +65,7 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
     annot_fontsize: 热力图数字字体大小
     """
     P.numQuestions = 100
-    P.N = 3
+    P.N = 5
     banbar_values = [0, 0.5, 0.8]
     
     # 获取数据
@@ -1023,14 +1023,15 @@ def drawGraph11(
 
 
 if __name__ == '__main__':
-    # 先运行drawGraph9生成防御策略-banbar组合热力图
-    # drawGraph9()
+    
+    # 运行drawGraph9生成防御策略-banbar组合热力图
+    drawGraph9()
     
     # 测试P.N参数的实际影响
     # test_PN_effect()
     
     # 临时修改para配置，确保只使用单一策略组合测试P.N效果
-    original_para = para.copy()
+    # original_para = para.copy()
     # para["inputStrategy"] = ["flow"]  # 只用flow策略
     # para["allocateStrategy"] = ["random"]  # 只用random策略
     # para["defendStrategy"] = ["global"]  # 只用global策略
@@ -1042,21 +1043,9 @@ if __name__ == '__main__':
     # drawGraph10Legend()
     
     # 绘制Graph11分图版本
-    drawGraph11(auto_range=True)
-    
-    # 其他调用示例：
-    # drawGraph10(auto_range=True, log_scale=0)  # 线性刻度
-    # drawGraph10(min_budget=1, max_budget=100, log_scale=1)  # 固定范围 + 对数刻度
-    # drawGraph10(min_budget=10, max_budget=1000, log_scale=0)  # 固定范围 + 线性刻度
-    # drawGraph10(auto_range=True, shadow_alpha=0.5)  # 调整阴影透明度
-    # drawGraph10(log_scale=0, shadow_alpha=0.1)  # 线性刻度 + 很透明的阴影
-    
-    # drawGraph11调用示例：
-    # drawGraph11(auto_range=True, log_scale=0)  # 线性刻度
-    # drawGraph11(min_budget=1, max_budget=100, log_scale=1)  # 固定范围 + 对数刻度
-    # drawGraph11(auto_range=True, shadow_alpha=0.2)  # 调整阴影透明度
-    
+    # drawGraph11(auto_range=True)
+ 
     # 恢复原始para配置
-    para.update(original_para)
+    # para.update(original_para)
 
 

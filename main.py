@@ -49,27 +49,30 @@ def failureCount(defendStrategy: str, question: Question, modelName: str, banbar
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)  # 被拒绝概率
         if (random.randint(1, 10)/10) < PReject:
             result = True  # 被拒绝
-            if FailCount + 1 > P.N + P.N*question.cost['account']:
+            if FailCount + 1 >= P.N + P.N*question.cost['account']:
                 # if random.random() < 0.01:  # 1%的概率打印调试信息
                 #     print(f"provider inner封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
+                # print(f"provider inner封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
                 warning = True
     elif defendStrategy == 'simi-global':
         SuccessCount, FailCount = question.countCountryHistory(P.findModelCountry(modelName))
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)
         if (random.randint(1, 10)/10) < PReject:
             result = True
-            if FailCount + 1 > P.N + P.N*question.cost['account']:
+            if FailCount + 1 >= P.N + P.N*question.cost['account']:
                 # if random.random() < 0.01:  # 1%的概率打印调试信息
                 #     print(f"simi-global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
+                # print(f"simi-global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
                 warning = True
     elif defendStrategy == 'global':
         SuccessCount, FailCount = question.countAllHistory()
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)
         if (random.randint(1, 10)/10) < PReject:
             result = True
-            if FailCount + 1 > P.N + P.N*question.cost['account']:
+            if FailCount + 1 >= P.N + P.N*question.cost['account']:
                 # if random.random() < 0.01:  # 1%的概率打印调试信息
                 #     print(f"global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
+                # print(f"global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
                 warning = True
     return result, warning
 
@@ -196,8 +199,10 @@ def processLevel(
     if allocateStrategy == 'random':
         random.shuffle(modelList)
     elif allocateStrategy == 'single':
-        modelList = random.sample(modelList, k=1)
-        # TODO 贪心选择拒绝概率最小的平台
+        # modelList = random.sample(modelList, k=1)
+        # 贪心选择拒绝概率最小的平台
+        modelList = sorted(modelList, key=lambda x: P.rejectMatrix[x][question.step])
+        modelList = [modelList[0]]
     
     # 确定模型类型
     modelType = None
