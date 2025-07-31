@@ -570,7 +570,7 @@ def drawGraph10(
     plt.title(f'Real Budget Constraint: Solved Questions vs Account Budget (Total: {num_questions} questions)', 
               fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
-    plt.legend(fontsize=10, loc='lower right')
+    # plt.legend(fontsize=10, loc='lower right')  # 图例已移至单独图表
     
     # 设置坐标轴显示范围
     plt.xlim(min_budget, max_budget)
@@ -714,12 +714,320 @@ def drawGraph10(
     
     return all_results
 
+
+def drawGraph10Legend():
+    """
+    为图10单独绘制图例，按照graph7_legend.png格式
+    """
+    fig, ax = plt.subplots(figsize=(8, 3))  # 调整尺寸以适应两列布局
+    ax.axis('off')  # 隐藏坐标轴
+    
+    # 创建图例项
+    banbar_values = [0, 0.5, 0.8]
+    PN_values = [5, 10, 50]  # 从drawGraph10中获取
+    colors = ['green', 'blue', 'red']
+    
+    # 创建所有图例元素，按照线段和阴影的顺序交替排列
+    legend_elements = []
+    
+    # 计算中间值和范围值
+    pn_min = min(PN_values)
+    pn_mid = PN_values[len(PN_values)//2] if len(PN_values) > 1 else PN_values[0]
+    pn_max = max(PN_values)
+    
+    # 先添加所有线段图例
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i]
+        # 根据banbar值设置不同的标签文本（按照graph7格式）
+        if banbar == 0:
+            label_text = f'No filtering (Banning Threshold={pn_mid})'
+        else:
+            label_text = f'filter rate={banbar} (Banning Threshold={pn_mid})'
+            
+        line = plt.Line2D([0], [0], color=color, linewidth=3, 
+                         label=label_text, marker='o', markersize=6)
+        legend_elements.append(line)
+    
+    # 再添加所有阴影图例
+    for i, banbar in enumerate(banbar_values):
+        color = colors[i]
+        # 根据banbar值设置不同的标签文本（按照graph7格式）
+        if banbar == 0:
+            label_text = f'No filtering Range (Banning Threshold={pn_min}~{pn_max})'
+        else:
+            label_text = f'filter rate={banbar} Range (Banning Threshold={pn_min}~{pn_max})'
+            
+        patch = plt.Rectangle((0, 0), 1, 1, facecolor=color, alpha=0.1,  # 使用与drawGraph10相同的透明度
+                            label=label_text)
+        legend_elements.append(patch)
+    
+    # 创建单个图例，使用两列布局
+    ax.legend(handles=legend_elements, fontsize=10, loc='center', 
+             frameon=True, fancybox=True, shadow=True, ncol=2)
+    
+    plt.tight_layout(pad=0.1)  # 减少边距
+    plt.savefig('result/graph10_legend.png', dpi=300, bbox_inches='tight', pad_inches=0.05)
+    print("图10图例已保存到 result/graph10_legend.png")
+    
+    plt.close()  # 关闭图表以释放内存
+
+
+def drawGraph11(
+        min_budget=1, 
+        max_budget=1000, 
+        num_questions=100, 
+        defend_strategy_list=None, 
+        auto_range=True, 
+        log_scale=1, 
+        shadow_alpha=0.1
+):
+    """
+    绘制图10的分图版本：将三个banbar曲线分别画在从上到下的三个子图中
+    - banbar取值：0, 0.5, 0.8  
+    - 封号限制强度(P.N)：5, 10, 50
+    - 每个子图显示一个banbar值的数据（主曲线+阴影区域）
+    
+    参数:
+    - min_budget: 预算范围最小值（当auto_range=False时使用）
+    - max_budget: 预算范围最大值（当auto_range=False时使用）
+    - num_questions: 问题总数  
+    - defend_strategy_list: 要使用的防御策略列表（如果为None，使用当前para["defendStrategy"]）
+    - auto_range: 是否自动确定显示范围（True时会忽略min_budget和max_budget参数）
+    - log_scale: 是否使用对数横轴（1=对数刻度，0=线性刻度）
+    - shadow_alpha: 阴影区域透明度（0.0-1.0，0为完全透明，1为完全不透明）
+    """
+    # 设置参数
+    banbar_values = [0, 0.5, 0.8]
+    PN_values = [5, 10, 50]
+    Epoch = 2
+    
+    # 临时保存原始设置
+    original_num_questions = P.numQuestions
+    original_N = P.N
+    original_defend_strategies = para["defendStrategy"]  # 保存原始防御策略
+    P.numQuestions = num_questions
+    
+    # 处理防御策略列表参数
+    if defend_strategy_list is not None:
+        # 如果传入了defend_strategy_list，则使用传入的值
+        para["defendStrategy"] = defend_strategy_list
+    # 否则使用当前para["defendStrategy"]的值（可能已经在调用前被设置）
+    
+    print(f"使用的防御策略: {para['defendStrategy']}")
+    
+    # 根据auto_range和log_scale决定预算范围
+    if auto_range:
+        # 自适应模式：先用大范围计算数据
+        print("🔍 自适应范围模式：先在大范围内计算数据以确定最佳显示范围...")
+        calc_min_budget = 1  # 对数刻度要求从1开始
+        calc_max_budget = min(1000, max_budget)  # 限制最大计算范围避免计算时间过长
+        budgets = list(range(calc_min_budget, calc_max_budget + 1))
+        print(f"计算范围：{calc_min_budget}-{calc_max_budget}")
+    else:
+        # 固定范围模式
+        if log_scale and min_budget <= 0:
+            # 对数刻度不能包含0或负数
+            actual_min_budget = max(1, min_budget)
+            print(f"⚠️  对数刻度模式：起始预算从{min_budget}调整为{actual_min_budget}")
+        else:
+            actual_min_budget = min_budget
+        budgets = list(range(actual_min_budget, max_budget + 1))
+        print(f"固定范围：{actual_min_budget}-{max_budget}{'（对数刻度）' if log_scale else '（线性刻度）'}")
+    
+    # 在函数开始时创建基础问题列表
+    base_question_list = [Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)]
+    
+    # 存储所有结果数据
+    all_results = {}
+    
+    print("开始计算真实预算约束下的问题解决数量...")
+    
+    # 遍历所有banbar和P.N的组合
+    for banbar in banbar_values:
+        all_results[banbar] = {}
+        print(f"计算banbar={banbar}的数据...")
+        
+        for pn_value in PN_values:
+            P.N = pn_value
+            print(f"  计算P.N={pn_value}的数据...")
+            
+            # 存储当前组合下所有攻防策略的结果
+            strategy_results = []
+            
+            for globalInputStrategy in para["inputStrategy"]:
+                for globalAllocateStrategy in para["allocateStrategy"]:
+                    for globalDetectAlgothms in para["detectAlgothms"]:
+                        for globalDefendStrategy in para["defendStrategy"]:
+                            globalPunishment = 'account'
+                            
+                            experiment_results = []
+                            for _ in range(Epoch):
+                                # 使用基础问题列表的拷贝
+                                questionList = copy.deepcopy(base_question_list)
+                                
+                                # 获取账号使用轨迹（一次计算即可）
+                                trajectory = processWithTrajectory(
+                                    inputStrategy=globalInputStrategy,
+                                    allocateStrategy=globalAllocateStrategy,
+                                    detectAlgothms=globalDetectAlgothms,
+                                    defendStrategy=globalDefendStrategy,
+                                    punishment=globalPunishment,
+                                    questionList=questionList,
+                                    banbar=banbar
+                                )
+                                
+                                # 根据轨迹计算所有预算下的结果
+                                solved_counts = trajectory_to_budget_results(trajectory, budgets)
+                                experiment_results.append(solved_counts)
+                            
+                            strategy_results.append(experiment_results)
+            
+            # 计算当前banbar和P.N组合下的平均值
+            mean_values = []
+            for budget_idx in range(len(budgets)):
+                all_values = []
+                for strategy_exp in strategy_results:
+                    for exp_result in strategy_exp:
+                        all_values.append(exp_result[budget_idx])
+                mean_values.append(np.mean(all_values))
+            
+            all_results[banbar][pn_value] = mean_values
+    
+    # 自适应范围处理
+    if auto_range:
+        print("\n🎯 分析数据变化点，确定最佳显示范围...")
+        adaptive_min_budget, adaptive_max_budget = find_adaptive_budget_range(
+            all_results, budgets, banbar_values, PN_values
+        )
+        print(f"📊 自适应范围结果：{adaptive_min_budget}-{adaptive_max_budget}")
+        
+        # 更新显示用的预算范围和数据
+        display_budgets = list(range(adaptive_min_budget, adaptive_max_budget + 1))
+        
+        # 截取数据到自适应范围
+        adaptive_results = {}
+        start_idx = budgets.index(adaptive_min_budget)
+        end_idx = budgets.index(adaptive_max_budget) + 1
+        
+        for banbar in banbar_values:
+            adaptive_results[banbar] = {}
+            for pn_value in PN_values:
+                adaptive_results[banbar][pn_value] = all_results[banbar][pn_value][start_idx:end_idx]
+        
+        # 使用自适应的结果和范围
+        all_results = adaptive_results
+        budgets = display_budgets
+        min_budget, max_budget = adaptive_min_budget, adaptive_max_budget
+        print(f"✅ 已优化到显示范围：{min_budget}-{max_budget}")
+    
+    # 绘制分图（从上到下的三个子图）
+    fig, axes = plt.subplots(3, 1, figsize=(10, 5), sharex=True)
+    fig.suptitle(f'Real Budget Constraint: Solved Questions vs Account Budget (Total: {num_questions} questions)', 
+                 fontsize=14, fontweight='bold', y=0.98)
+    
+    # 设置统一的y轴标题（参考图10的y轴标题格式）
+    fig.supylabel('Number of Actually Solved Questions', fontsize=12, fontweight='bold')
+    
+    # 为不同banbar值分别绘制图形
+    colors = ['green', 'blue', 'red']  # banbar=0用绿色，banbar=0.5用蓝色，banbar=0.8用红色
+    banbar_labels = {0: '4', 0.5: '3', 0.8: '2'}  # 从上到下对应4、3、2（参考用户图片）
+    
+    for subplot_idx, banbar in enumerate(banbar_values):
+        ax = axes[subplot_idx]
+        color = colors[subplot_idx]
+        
+        # 动态获取P.N值数据
+        pn_min = min(PN_values)
+        pn_mid = PN_values[len(PN_values)//2] if len(PN_values) > 1 else PN_values[0]
+        pn_max = max(PN_values)
+        
+        pn_min_data = all_results[banbar][pn_min]
+        pn_mid_data = all_results[banbar][pn_mid]
+        pn_max_data = all_results[banbar][pn_max]
+        
+        # 绘制中间P.N值的实线
+        ax.plot(budgets, pn_mid_data, color=color, linewidth=3, 
+                marker='o', markersize=4, 
+                markevery=max(1, len(budgets)//15))  # 控制标记点密度
+        
+        # 绘制最小和最大P.N值之间的阴影区域（如果它们不同）
+        if pn_min != pn_max:
+            upper_bound = np.maximum(pn_min_data, pn_max_data)
+            lower_bound = np.minimum(pn_min_data, pn_max_data)
+            ax.fill_between(budgets, lower_bound, upper_bound,
+                            color=color, alpha=shadow_alpha)
+            
+            # 绘制最小和最大P.N值的边界线（虚线）
+            ax.plot(budgets, pn_min_data, color=color, linewidth=1, 
+                    linestyle='--', alpha=0.6)
+            ax.plot(budgets, pn_max_data, color=color, linewidth=1, 
+                    linestyle='--', alpha=0.6)
+        
+        # 设置子图属性
+        if log_scale:
+            ax.set_xscale('log')
+        
+        ax.grid(True, alpha=0.3)
+        
+        # 设置坐标轴显示范围
+        ax.set_xlim(min_budget, max_budget)
+        ax.set_ylim(0, num_questions * 1.1)  # 留出一些空间
+        
+        
+        # 设置Y轴刻度
+        from matplotlib.ticker import FixedLocator
+        y_min, y_max = ax.get_ylim()
+        y_ticks = []
+        
+        # 添加合适的刻度
+        if y_max <= 50:
+            step = 10
+        elif y_max <= 100:
+            step = 20
+        else:
+            step = 50
+            
+        for i in range(0, int(y_max) + 1, step):
+            if i <= y_max:
+                y_ticks.append(i)
+        
+        if y_ticks:
+            ax.yaxis.set_major_locator(FixedLocator(y_ticks))
+    
+    # 设置底部子图的x轴标签，参考图10的x轴标题格式
+    if log_scale:
+        axes[-1].set_xlabel('Account Budget (Log Scale)', fontsize=12, fontweight='bold')
+    else:
+        axes[-1].set_xlabel('Account Budget', fontsize=12, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.94)  # 为总标题留出空间
+    
+    # 保存图表
+    plt.savefig('result/graph11_budget_constraint_subplots.png', dpi=300, bbox_inches='tight')
+    print(f"图表已保存到 result/graph11_budget_constraint_subplots.png")
+    if auto_range:
+        print(f"📊 自适应显示范围：{min_budget}-{max_budget}")
+        print(f"🎯 智能优化：自动识别数据变化区间")
+    else:
+        print(f"📊 固定显示范围：{min_budget}-{max_budget}")
+    print(f"❓ 问题总数：{num_questions}")
+    print(f"📈 分图格式：3个子图从上到下分别显示banbar=0, 0.5, 0.8的数据")
+    
+    # 恢复原始设置
+    P.numQuestions = original_num_questions
+    P.N = original_N
+    para["defendStrategy"] = original_defend_strategies  # 恢复原始防御策略
+    
+    return all_results
+
+
 if __name__ == '__main__':
     # 先运行drawGraph9生成防御策略-banbar组合热力图
     # drawGraph9()
     
     # 测试P.N参数的实际影响
-    test_PN_effect()
+    # test_PN_effect()
     
     # 临时修改para配置，确保只使用单一策略组合测试P.N效果
     original_para = para.copy()
@@ -728,7 +1036,13 @@ if __name__ == '__main__':
     # para["defendStrategy"] = ["global"]  # 只用global策略
     
     # 使用自适应范围模式，默认对数刻度
-    drawGraph10(auto_range=True)
+    # drawGraph10(auto_range=True)
+    
+    # 绘制单独的图例
+    # drawGraph10Legend()
+    
+    # 绘制Graph11分图版本
+    drawGraph11(auto_range=True)
     
     # 其他调用示例：
     # drawGraph10(auto_range=True, log_scale=0)  # 线性刻度
@@ -737,5 +1051,12 @@ if __name__ == '__main__':
     # drawGraph10(auto_range=True, shadow_alpha=0.5)  # 调整阴影透明度
     # drawGraph10(log_scale=0, shadow_alpha=0.1)  # 线性刻度 + 很透明的阴影
     
+    # drawGraph11调用示例：
+    # drawGraph11(auto_range=True, log_scale=0)  # 线性刻度
+    # drawGraph11(min_budget=1, max_budget=100, log_scale=1)  # 固定范围 + 对数刻度
+    # drawGraph11(auto_range=True, shadow_alpha=0.2)  # 调整阴影透明度
+    
     # 恢复原始para配置
     para.update(original_para)
+
+
