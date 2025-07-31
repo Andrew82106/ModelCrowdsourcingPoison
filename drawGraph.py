@@ -1,4 +1,17 @@
-from main import process, P, evaluateScoreMatrix, Question
+"""
+绘图模块 - 专门负责数据可视化
+此模块包含所有图形绘制函数，与数据处理逻辑解耦
+
+从 main.py 导入的数据处理函数：
+- process: 基础问题处理函数
+- processWithTrajectory: 轨迹模式问题处理函数  
+- processLevelWithTrajectory: 级别处理辅助函数
+- trajectory_to_budget_results: 轨迹转换为预算结果
+"""
+from main import (
+    process, P, evaluateScoreMatrix, Question, dealQuestion,
+    processWithTrajectory, processLevelWithTrajectory, trajectory_to_budget_results
+)
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -646,7 +659,7 @@ def drawGraph7(min_budget=0, max_budget=100):
     # 临时保存原始设置
     original_num_questions = P.numQuestions
     original_N = P.N
-    P.numQuestions = 100
+    P.numQuestions = 2
     
     # 存储所有结果数据
     all_results = {}
@@ -671,9 +684,9 @@ def drawGraph7(min_budget=0, max_budget=100):
                         for globalDefendStrategy in para["defendStrategy"]:
                             globalPunishment = 'account'
                             
-                            # 运行3次实验取平均
+                            # 运行5次实验取平均
                             experiment_results = []
-                            for _ in range(3):
+                            for _ in range(5):
                                 finalQuestionList = process(
                                     inputStrategy=globalInputStrategy,
                                     allocateStrategy=globalAllocateStrategy,
@@ -822,9 +835,9 @@ def drawGraph8(min_budget=0, max_budget=25):
                         for globalDefendStrategy in para["defendStrategy"]:
                             globalPunishment = 'account'
                             
-                            # 运行3次实验取平均
+                            # 运行5次实验取平均
                             experiment_results = []
-                            for _ in range(3):
+                            for _ in range(5):
                                 finalQuestionList = process(
                                     inputStrategy=globalInputStrategy,
                                     allocateStrategy=globalAllocateStrategy,
@@ -1119,155 +1132,9 @@ def drawGraph8Legend():
     plt.close()
 
 
-def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, annot_fontsize=12):
-    """绘制防御策略与banbar值组合的热力图（9x6）
-    基于Graph2，纵轴为防御策略+banbar值的组合，横轴为攻击策略
-    colorbar_pad: 色条与热力图的间距
-    yticklabel_offset: 纵坐标标签名称与坐标轴的距离（单位为points）
-    xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
-    annot_fontsize: 热力图数字字体大小
-    """
-    P.numQuestions = 100
-    P.N = 3
-    banbar_values = [0, 0.5, 0.8]
-    
-    # 获取数据
-    result = []
-    for banbar in banbar_values:
-        for globalInputStrategy in para["inputStrategy"]:
-            for globalAllocateStrategy in para["allocateStrategy"]:
-                for globalDetectAlgothms in para["detectAlgothms"]:
-                    for globalDefendStrategy in para["defendStrategy"]:
-                        attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
-                        defendMethod = globalDefendStrategy  # 只保留防御策略名
-                        defendBanbarMethod = f"{globalDefendStrategy}-banbar{banbar}"  # 防御策略+banbar组合
-                        globalPunishment = 'account'
-                        
-                        finalQuestionList = process(
-                            inputStrategy=globalInputStrategy,
-                            allocateStrategy=globalAllocateStrategy,
-                            detectAlgothms=globalDetectAlgothms,
-                            defendStrategy=globalDefendStrategy,
-                            punishment=globalPunishment,
-                            questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
-                            banbar=banbar
-                        )
-                        
-                        # 计算失败次数，与Graph2相同的逻辑
-                        if globalDefendStrategy == "global":
-                            fail_counts = [(question_.countAllHistory()[1] // P.N) for question_ in finalQuestionList]
-                            mean_fail = np.mean(fail_counts)
-                        elif globalDefendStrategy == "simi-global":
-                            mean_fail = np.mean([(question_.countCountryHistory('Chi')[1] // P.N) for question_ in finalQuestionList]) + np.mean([(question_.countProviderHistory('For')[1]) / 2 for question_ in finalQuestionList])
-                            mean_fail = mean_fail / 2
-                        elif globalDefendStrategy == "provider inner":
-                            mean_fail = 0
-                            for provider in ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']:
-                                mean_fail += np.mean([(question_.countProviderHistory(provider)[1] // P.N) for question_ in finalQuestionList])
-                            mean_fail = mean_fail / 5
-                        else:
-                            raise Exception(f"Invalid defend strategy {globalDefendStrategy}")
-                        
-                        print(f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail: {mean_fail}")
-                        result.append(
-                            {
-                                "attackMethod": attackMethod,
-                                "defendBanbarMethod": defendBanbarMethod,
-                                "mean_fail": mean_fail,
-                                "banbar": banbar
-                            }
-                        )
-
-    df = pd.DataFrame(result)
-
-    # 转换显示名称
-    def convert_attack_method(method):
-        parts = method.split('-')
-        if len(parts) == 2:
-            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
-        return method
-
-    def convert_defend_banbar_method(method):
-        # 格式：defendStrategy-banbar0.5
-        if '-banbar' in method:
-            defend_part, banbar_part = method.split('-banbar')
-            if defend_part == 'simi-global':
-                defend_part = 'simiglobal'
-            defend_name = para2name.get(defend_part, defend_part)
-            
-            # 映射banbar值到描述性名称
-            banbar_mapping = {
-                '0': 'N',
-                '0.5': 'M', 
-                '0.8': 'S'
-            }
-            banbar_display = banbar_mapping.get(banbar_part, banbar_part)
-            return f"{defend_name}-{banbar_display}"
-        return method
-
-    attack_methods = sorted(df['attackMethod'].unique())
-    defend_banbar_methods = []
-    
-    # 按banbar值和防御策略的顺序组织纵轴
-    for defend_strategy in para["defendStrategy"]:
-        for banbar in banbar_values:
-            defend_banbar_method = f"{defend_strategy}-banbar{banbar}"
-            defend_banbar_methods.append(defend_banbar_method)
-    
-    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
-    defend_banbar_methods_disp = [convert_defend_banbar_method(m) for m in defend_banbar_methods]
-
-    # 构建热力图数据矩阵 (9行×6列)
-    heatmap_data = np.zeros((len(defend_banbar_methods), len(attack_methods)))
-    for i, d in enumerate(defend_banbar_methods):
-        for j, a in enumerate(attack_methods):
-            val = df[(df['attackMethod'] == a) & (df['defendBanbarMethod'] == d)]['mean_fail']
-            heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
-
-    # 绘制热力图
-    plt.figure(figsize=(12, 8))  # 调整尺寸适应9x6矩阵
-    ax = sns.heatmap(
-        heatmap_data,
-        annot=True,
-        fmt='.1f',
-        cmap='Reds',
-        xticklabels=attack_methods_disp,
-        yticklabels=defend_banbar_methods_disp,
-        cbar_kws={'label': 'Average of Detected Count per Question', 'pad': colorbar_pad}
-    )
-    
-    # 在每三行之间添加白色分割线（区分不同banbar值的组）
-    # 第3行后添加线（在索引3的位置）
-    ax.axhline(y=3, color='white', linewidth=3)
-    # 第6行后添加线（在索引6的位置）
-    ax.axhline(y=6, color='white', linewidth=3)
-    
-    # 调整热力图数字字体大小
-    for text in ax.texts:
-        text.set_fontsize(annot_fontsize)
-    
-    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold', labelpad=xticklabel_offset)
-    ax.set_ylabel('Defense Policy', fontsize=12, fontweight='bold', labelpad=yticklabel_offset)
-    plt.xticks(rotation=0, ha='center', fontsize=10)
-    plt.yticks(rotation=0, fontsize=10)
-    plt.tight_layout()
-    plt.savefig('result/graph9_defense_banbar_heatmap.png', dpi=300, bbox_inches='tight')
-    # plt.show()
-    print("\n=== Graph9 Heatmap of Defense-Banbar Combinations Saved ===")
-    print(f"Failure Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
-    print(f"Heatmap Shape: {heatmap_data.shape} (9 defense-banbar combinations × 6 attack strategies)")
-
 
 if __name__ == '__main__':
-    # drawGraph1()
-    # drawGraph2()
-    # drawGraph3()
-    # drawGraph4()
-    # drawGraph5()
-    # drawGraph6()
-    # drawGraph7()
-    # drawGraph8()
-    # drawGraph7Legend()
-    # drawGraph8Legend()
-    drawGraph9()
+    # Graph9和Graph10相关函数已迁移到drawGraph2.py
+    print("Graph1-8相关函数在此文件中")
+    print("Graph9-10相关函数已迁移到drawGraph2.py，请运行: python drawGraph2.py")
 
