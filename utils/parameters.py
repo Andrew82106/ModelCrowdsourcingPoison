@@ -53,10 +53,17 @@ class Parameters(MetaFunction):
             return "ForBMs"
         elif modelName in self.model.ChiFMsList:
             return "ChiFMs"
+        elif modelName in self.model.ForFMsList:
+            return "ForFMs"
+        else:
+            raise ValueError(f"Invalid model name: {modelName}")
 
 
     def findModelCountry(self, modelName: str):
         ModelLevel = self.findModelLevel(modelName)
+        # print(f"modelName: {modelName}")
+        # print(f"ModelLevel: {ModelLevel}")
+
         if "Chi" in ModelLevel:
             return 'Chi'
         elif "For" in ModelLevel:

@@ -4,7 +4,7 @@ class MetaFunction:
 
     @staticmethod
     def findModelProvider(modelName: str):
-        # ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']
+        # ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek', 'siliconflow', 'openrouter']
         # if "GPT" in modelName:
         if modelName.startswith('GPT'):
             return 'openAI'
@@ -20,5 +20,11 @@ class MetaFunction:
         # if "Deepseek" in modelName:
         if modelName.startswith('Deepseek'):
             return 'deepseek'
+        if modelName.startswith('siliconflow'):
+            return 'siliconflow'
+        if modelName.startswith('openrouter'):
+            return 'openrouter'
+        if modelName.startswith('awz'):
+            return 'awz'
         else:
             raise ValueError(f"Invalid model name: {modelName}")

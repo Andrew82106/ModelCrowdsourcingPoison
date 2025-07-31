@@ -1,4 +1,5 @@
 ChiAMs,ForAMs,ChiBMs,ForBMs,ChiFMs,ForFMs
-Qwen2.5-72B-Instruct,GPT-4o,Qwen2.5-14B-Instruct,GPT-4o-mini,Qwen2-7B-Instruct,None
-Deepseek-V3,None,Qwen2.5-32B-Instruct,None,Qwen2.5-7B-Instruct,None
+siliconflow-Qwen2.5-72B-Instruct,GPT-4o,siliconflow-Qwen2.5-14B-Instruct,GPT-4o-mini,siliconflow-Qwen2-7B-Instruct,openrouter-Qwen2-7B-Instruct
+Qwen2.5-72B-Instruct,openrouter-GPT-4o,Qwen2.5-14B-Instruct,openrouter-GPT-4o-mini,Qwen2-7B-Instruct,openrouter-GLM4-9B-chat
+Deepseek-V3,awz-GPT-4o,Qwen2.5-32B-Instruct,awz-GPT-4o-mini,Qwen2.5-7B-Instruct,awz-Qwen2.5-7B-Instruct
 None,None,None,None,GLM4-9B-chat,None

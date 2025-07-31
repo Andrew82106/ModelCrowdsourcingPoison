@@ -64,8 +64,8 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
     xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
     annot_fontsize: 热力图数字字体大小
     """
-    P.numQuestions = 100
-    P.N = 5
+    P.numQuestions = 10000
+    P.N = 10
     banbar_values = [0, 0.5, 0.8]
     
     # 获取数据
