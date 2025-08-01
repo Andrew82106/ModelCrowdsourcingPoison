@@ -64,7 +64,7 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
     xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
     annot_fontsize: 热力图数字字体大小
     """
-    P.numQuestions = 1000
+    P.numQuestions = 10000
     P.N = 10
     banbar_values = [0, 0.5, 0.8]
     
@@ -90,31 +90,21 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
                             banbar=banbar
                         )
                         
-                        # 计算封号次数
+                        # 计算失败次数，与Graph2相同的逻辑
                         if globalDefendStrategy == "global":
-                            fail_counts_all = sum([question_.countAllHistory()[1] for question_ in finalQuestionList])
-                            mean_fail = fail_counts_all // P.N
-                            # 失败总数除以PN得到封号次数
+                            fail_counts = [(question_.countAllHistory()[1] // P.N) for question_ in finalQuestionList]
+                            mean_fail = np.mean(fail_counts)
                         elif globalDefendStrategy == "simi-global":
-                            chi_fail_sum = sum([question_.countCountryHistory('Chi')[1] for question_ in finalQuestionList]) // P.N
-                            for_fail_sum = sum([question_.countProviderHistory('For')[1] for question_ in finalQuestionList]) // P.N
-                            mean_fail = (chi_fail_sum // P.N) + (for_fail_sum // P.N)
-                            # 每个国家的失败次数除以PN得到封号次数，然后求平均
+                            mean_fail = np.mean([(question_.countCountryHistory('Chi')[1] // P.N) for question_ in finalQuestionList]) + np.mean([(question_.countProviderHistory('For')[1]) / 2 for question_ in finalQuestionList])
+                            mean_fail = mean_fail / 2
                         elif globalDefendStrategy == "provider inner":
                             mean_fail = 0
-                            provider_map = {}  # 记录每个提供商失败次数
-                            for question_ in finalQuestionList:
-                                provider_list = question_.exportProviderList()
-                                for provider in provider_list:
-                                    if provider not in provider_map:
-                                        provider_map[provider] = 0
-                                    provider_map[provider] += question_.countProviderHistory(provider)[1]
-                            for provider in provider_map:
-                                mean_fail += (provider_map[provider] // P.N)
-                            mean_fail = mean_fail / len(provider_map)
-                            # 所有提供商的封号次数求平均
+                            for provider in ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek', 'awz','openrouter', 'siliconflow']:
+                                mean_fail += np.mean([(question_.countProviderHistory(provider)[1] // P.N) for question_ in finalQuestionList])
+                            mean_fail = mean_fail / 5
                         else:
                             raise Exception(f"Invalid defend strategy {globalDefendStrategy}")
+                        
                         print(f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail: {mean_fail}")
                         result.append(
                             {
@@ -1032,10 +1022,413 @@ def drawGraph11(
     return all_results
 
 
+
+
+def drawGraph900(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, annot_fontsize=12):
+    """绘制防御策略与banbar值组合的热力图（9x6）
+    基于Graph2，纵轴为防御策略+banbar值的组合，横轴为攻击策略
+    colorbar_pad: 色条与热力图的间距
+    yticklabel_offset: 纵坐标标签名称与坐标轴的距离（单位为points）
+    xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
+    annot_fontsize: 热力图数字字体大小
+    """
+    P.numQuestions = 10000
+    P.N = 10
+    banbar_values = [0, 0.5, 0.8]
+    
+    # 获取数据
+    result = []
+    for banbar in banbar_values:
+        for globalInputStrategy in para["inputStrategy"]:
+            for globalAllocateStrategy in para["allocateStrategy"]:
+                for globalDetectAlgothms in para["detectAlgothms"]:
+                    for globalDefendStrategy in para["defendStrategy"]:
+                        attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                        defendMethod = globalDefendStrategy  # 只保留防御策略名
+                        defendBanbarMethod = f"{globalDefendStrategy}-banbar{banbar}"  # 防御策略+banbar组合
+                        globalPunishment = 'account'
+                        
+                        finalQuestionList = process(
+                            inputStrategy=globalInputStrategy,
+                            allocateStrategy=globalAllocateStrategy,
+                            detectAlgothms=globalDetectAlgothms,
+                            defendStrategy=globalDefendStrategy,
+                            punishment=globalPunishment,
+                            questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
+                            banbar=banbar
+                        )
+                        
+                        # 计算失败次数，与Graph2相同的逻辑
+                        if globalDefendStrategy == "global":
+                            fail_counts = [(question_.countAllHistory()[1] // P.N) for question_ in finalQuestionList]
+                            mean_fail = np.mean(fail_counts)
+                        elif globalDefendStrategy == "simi-global":
+                            mean_fail = np.mean([(question_.countCountryHistory('Chi')[1] // P.N) for question_ in finalQuestionList]) + np.mean([(question_.countProviderHistory('For')[1]) / 2 for question_ in finalQuestionList])
+                            mean_fail = mean_fail / 2
+                        elif globalDefendStrategy == "provider inner":
+                            mean_fail = 0
+                            for provider in ['openAI', 'meta', 'tongyi', 'zhipu', 'deepseek']:
+                                mean_fail += np.mean([(question_.countProviderHistory(provider)[1] // P.N) for question_ in finalQuestionList])
+                            mean_fail = mean_fail / 5
+                        else:
+                            raise Exception(f"Invalid defend strategy {globalDefendStrategy}")
+                        
+                        print(f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail: {mean_fail}")
+                        result.append(
+                            {
+                                "attackMethod": attackMethod,
+                                "defendBanbarMethod": defendBanbarMethod,
+                                "mean_fail": mean_fail,
+                                "banbar": banbar
+                            }
+                        )
+
+    df = pd.DataFrame(result)
+
+    # 转换显示名称
+    def convert_attack_method(method):
+        parts = method.split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    def convert_defend_banbar_method(method):
+        # 格式：defendStrategy-banbar0.5
+        if '-banbar' in method:
+            defend_part, banbar_part = method.split('-banbar')
+            if defend_part == 'simi-global':
+                defend_part = 'simiglobal'
+            defend_name = para2name.get(defend_part, defend_part)
+            
+            # 映射banbar值到描述性名称
+            banbar_mapping = {
+                '0': 'N',
+                '0.5': 'M', 
+                '0.8': 'S'
+            }
+            banbar_display = banbar_mapping.get(banbar_part, banbar_part)
+            return f"{defend_name}-{banbar_display}"
+        return method
+
+    attack_methods = sorted(df['attackMethod'].unique())
+    defend_banbar_methods = []
+    
+    # 按banbar值和防御策略的顺序组织纵轴
+    for defend_strategy in para["defendStrategy"]:
+        for banbar in banbar_values:
+            defend_banbar_method = f"{defend_strategy}-banbar{banbar}"
+            defend_banbar_methods.append(defend_banbar_method)
+    
+    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
+    defend_banbar_methods_disp = [convert_defend_banbar_method(m) for m in defend_banbar_methods]
+
+    # 构建热力图数据矩阵 (9行×6列)
+    heatmap_data = np.zeros((len(defend_banbar_methods), len(attack_methods)))
+    for i, d in enumerate(defend_banbar_methods):
+        for j, a in enumerate(attack_methods):
+            val = df[(df['attackMethod'] == a) & (df['defendBanbarMethod'] == d)]['mean_fail']
+            heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
+
+    # 绘制热力图
+    plt.figure(figsize=(8, 3))  # 调整尺寸适应9x6矩阵
+    ax = sns.heatmap(
+        heatmap_data,
+        annot=True,
+        fmt='.3f',
+        cmap='Purples',
+        xticklabels=attack_methods_disp,
+        yticklabels=defend_banbar_methods_disp,
+        cbar_kws={'label': 'Average Banned Accounts', 'pad': colorbar_pad}
+                )
+    
+    # 在每三行之间添加白色分割线（区分不同banbar值的组）
+    # 第3行后添加线（在索引3的位置）
+    ax.axhline(y=3, color='white', linewidth=3)
+    # 第6行后添加线（在索引6的位置）
+    ax.axhline(y=6, color='white', linewidth=3)
+    
+    # 调整热力图数字字体大小
+    for text in ax.texts:
+        text.set_fontsize(annot_fontsize)
+    
+    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold', labelpad=xticklabel_offset)
+    ax.set_ylabel('Defense Policy', fontsize=12, fontweight='bold', labelpad=yticklabel_offset)
+    plt.xticks(rotation=0, ha='center', fontsize=10)
+    plt.yticks(rotation=0, fontsize=10)
+    plt.tight_layout()
+    plt.savefig('result/graph9_defense_banbar_heatmap2.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+    print("\n=== Graph9 Heatmap of Defense-Banbar Combinations Saved ===")
+    print(f"Failure Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
+    print(f"Heatmap Shape: {heatmap_data.shape} (9 defense-banbar combinations × 6 attack strategies)")
+
+
+def drawAverageRequestHeatmap(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, annot_fontsize=12):
+    """绘制平均失败请求次数的热力图（9x6）
+    基于Graph9风格，纵轴为防御策略+banbar值的组合，横轴为攻击策略
+    统计每个问题平均需要的失败请求次数
+    colorbar_pad: 色条与热力图的间距
+    yticklabel_offset: 纵坐标标签名称与坐标轴的距离（单位为points）
+    xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
+    annot_fontsize: 热力图数字字体大小
+    """
+    P.numQuestions = 10000
+    P.N = 9
+    banbar_values = [0, 0.5, 0.8]
+    
+    # 获取数据
+    result = []
+    for banbar in banbar_values:
+        for globalInputStrategy in para["inputStrategy"]:
+            for globalAllocateStrategy in para["allocateStrategy"]:
+                for globalDetectAlgothms in para["detectAlgothms"]:
+                    for globalDefendStrategy in para["defendStrategy"]:
+                        attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                        defendMethod = globalDefendStrategy  # 只保留防御策略名
+                        defendBanbarMethod = f"{globalDefendStrategy}-banbar{banbar}"  # 防御策略+banbar组合
+                        globalPunishment = 'account'
+                        
+                        finalQuestionList = process(
+                            inputStrategy=globalInputStrategy,
+                            allocateStrategy=globalAllocateStrategy,
+                            detectAlgothms=globalDetectAlgothms,
+                            defendStrategy=globalDefendStrategy,
+                            punishment=globalPunishment,
+                            questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
+                            banbar=banbar
+                        )
+                        
+                        # 计算平均失败请求次数
+                        total_fail_requests = 0
+                        for question_ in finalQuestionList:
+                            # 只统计失败请求次数
+                            fail_requests = question_.countAllHistory()[1]     # 失败请求次数
+                            total_fail_requests += fail_requests
+                        
+                        mean_fail_requests = total_fail_requests / len(finalQuestionList)
+                        
+                        print(f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail requests: {mean_fail_requests:.2f}")
+                        result.append(
+                            {
+                                "attackMethod": attackMethod,
+                                "defendBanbarMethod": defendBanbarMethod,
+                                "mean_fail_requests": mean_fail_requests,
+                                "banbar": banbar
+                            }
+                        )
+
+    df = pd.DataFrame(result)
+
+    # 转换显示名称
+    def convert_attack_method(method):
+        parts = method.split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    def convert_defend_banbar_method(method):
+        # 格式：defendStrategy-banbar0.5
+        if '-banbar' in method:
+            defend_part, banbar_part = method.split('-banbar')
+            if defend_part == 'simi-global':
+                defend_part = 'simiglobal'
+            defend_name = para2name.get(defend_part, defend_part)
+            
+            # 映射banbar值到描述性名称
+            banbar_mapping = {
+                '0': 'N',
+                '0.5': 'M', 
+                '0.8': 'S'
+            }
+            banbar_display = banbar_mapping.get(banbar_part, banbar_part)
+            return f"{defend_name}-{banbar_display}"
+        return method
+
+    attack_methods = sorted(df['attackMethod'].unique())
+    defend_banbar_methods = []
+    
+    # 按banbar值和防御策略的顺序组织纵轴
+    for defend_strategy in para["defendStrategy"]:
+        for banbar in banbar_values:
+            defend_banbar_method = f"{defend_strategy}-banbar{banbar}"
+            defend_banbar_methods.append(defend_banbar_method)
+    
+    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
+    defend_banbar_methods_disp = [convert_defend_banbar_method(m) for m in defend_banbar_methods]
+
+    # 构建热力图数据矩阵 (9行×6列)
+    heatmap_data = np.zeros((len(defend_banbar_methods), len(attack_methods)))
+    for i, d in enumerate(defend_banbar_methods):
+        for j, a in enumerate(attack_methods):
+            val = df[(df['attackMethod'] == a) & (df['defendBanbarMethod'] == d)]['mean_fail_requests']
+            heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
+
+    # 绘制热力图
+    plt.figure(figsize=(12, 8))  # 调整尺寸适应9x6矩阵
+    ax = sns.heatmap(
+        heatmap_data,
+        annot=True,
+        fmt='.1f',
+        cmap='Reds',  # 使用红色调，适合表示失败次数
+        xticklabels=attack_methods_disp,
+        yticklabels=defend_banbar_methods_disp,
+        cbar_kws={'label': 'Average Number of Failed Requests per Question', 'pad': colorbar_pad}
+    )
+    
+    # 在每三行之间添加白色分割线（区分不同banbar值的组）
+    # 第3行后添加线（在索引3的位置）
+    ax.axhline(y=3, color='white', linewidth=3)
+    # 第6行后添加线（在索引6的位置）
+    ax.axhline(y=6, color='white', linewidth=3)
+    
+    # 调整热力图数字字体大小
+    for text in ax.texts:
+        text.set_fontsize(annot_fontsize)
+    
+    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold', labelpad=xticklabel_offset)
+    ax.set_ylabel('Defense Policy', fontsize=12, fontweight='bold', labelpad=yticklabel_offset)
+    plt.xticks(rotation=0, ha='center', fontsize=10)
+    plt.yticks(rotation=0, fontsize=10)
+    plt.tight_layout()
+    plt.savefig('result/average_fail_requests_heatmap.png', dpi=300, bbox_inches='tight')
+    # plt.show()
+    print("\n=== Average Failed Requests Heatmap Saved ===")
+    print(f"Failed Request Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
+    print(f"Heatmap Shape: {heatmap_data.shape} (9 defense-banbar combinations × 6 attack strategies)")
+
+
+def drawAverageRequestHeatmap2(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, annot_fontsize=12):
+    """绘制平均失败请求次数的热力图（9x6）- 紧凑版本
+    基于Graph900风格，使用更紧凑的布局
+    """
+    P.numQuestions = 100
+    P.N = 10
+    banbar_values = [0, 0.5, 0.8]
+    
+    # 获取数据
+    result = []
+    for banbar in banbar_values:
+        for globalInputStrategy in para["inputStrategy"]:
+            for globalAllocateStrategy in para["allocateStrategy"]:
+                for globalDetectAlgothms in para["detectAlgothms"]:
+                    for globalDefendStrategy in para["defendStrategy"]:
+                        attackMethod = globalInputStrategy + '-' + globalAllocateStrategy
+                        defendMethod = globalDefendStrategy
+                        defendBanbarMethod = f"{globalDefendStrategy}-banbar{banbar}"
+                        globalPunishment = 'account'
+                        
+                        finalQuestionList = process(
+                            inputStrategy=globalInputStrategy,
+                            allocateStrategy=globalAllocateStrategy,
+                            detectAlgothms=globalDetectAlgothms,
+                            defendStrategy=globalDefendStrategy,
+                            punishment=globalPunishment,
+                            questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
+                            banbar=banbar
+                        )
+                        
+                        # 计算平均失败请求次数
+                        total_fail_requests = 0
+                        for question_ in finalQuestionList:
+                            fail_requests = question_.countAllHistory()[1]
+                            total_fail_requests += fail_requests
+                        
+                        mean_fail_requests = total_fail_requests / len(finalQuestionList)
+                        
+                        print(f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail requests: {mean_fail_requests:.2f}")
+                        result.append(
+                            {
+                                "attackMethod": attackMethod,
+                                "defendBanbarMethod": defendBanbarMethod,
+                                "mean_fail_requests": mean_fail_requests,
+                                "banbar": banbar
+                            }
+                        )
+
+    df = pd.DataFrame(result)
+
+    # 转换显示名称
+    def convert_attack_method(method):
+        parts = method.split('-')
+        if len(parts) == 2:
+            return para2name.get(parts[0], parts[0]) + '-' + para2name.get(parts[1], parts[1])
+        return method
+
+    def convert_defend_banbar_method(method):
+        if '-banbar' in method:
+            defend_part, banbar_part = method.split('-banbar')
+            if defend_part == 'simi-global':
+                defend_part = 'simiglobal'
+            defend_name = para2name.get(defend_part, defend_part)
+            
+            banbar_mapping = {
+                '0': 'N',
+                '0.5': 'M', 
+                '0.8': 'S'
+            }
+            banbar_display = banbar_mapping.get(banbar_part, banbar_part)
+            return f"{defend_name}-{banbar_display}"
+        return method
+
+    attack_methods = sorted(df['attackMethod'].unique())
+    defend_banbar_methods = []
+    
+    for defend_strategy in para["defendStrategy"]:
+        for banbar in banbar_values:
+            defend_banbar_method = f"{defend_strategy}-banbar{banbar}"
+            defend_banbar_methods.append(defend_banbar_method)
+    
+    attack_methods_disp = [convert_attack_method(m) for m in attack_methods]
+    defend_banbar_methods_disp = [convert_defend_banbar_method(m) for m in defend_banbar_methods]
+
+    # 构建热力图数据矩阵
+    heatmap_data = np.zeros((len(defend_banbar_methods), len(attack_methods)))
+    for i, d in enumerate(defend_banbar_methods):
+        for j, a in enumerate(attack_methods):
+            val = df[(df['attackMethod'] == a) & (df['defendBanbarMethod'] == d)]['mean_fail_requests']
+            heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
+
+    # 绘制热力图 - 紧凑版本
+    plt.figure(figsize=(8, 3))  # 紧凑尺寸
+    ax = sns.heatmap(
+        heatmap_data,
+        annot=True,
+        fmt='.3f',
+        cmap='Reds',
+        xticklabels=attack_methods_disp,
+        yticklabels=defend_banbar_methods_disp,
+        cbar_kws={'label': 'Average Failed Requests', 'pad': colorbar_pad}
+    )
+    
+    # 添加分割线
+    ax.axhline(y=3, color='white', linewidth=3)
+    ax.axhline(y=6, color='white', linewidth=3)
+    
+    # 调整字体大小
+    for text in ax.texts:
+        text.set_fontsize(annot_fontsize)
+    
+    ax.set_xlabel('Attack Strategy', fontsize=12, fontweight='bold', labelpad=xticklabel_offset)
+    ax.set_ylabel('Defense Policy', fontsize=12, fontweight='bold', labelpad=yticklabel_offset)
+    plt.xticks(rotation=0, ha='center', fontsize=10)
+    plt.yticks(rotation=0, fontsize=10)
+    plt.tight_layout()
+    plt.savefig('result/average_fail_requests_heatmap_compact.png', dpi=300, bbox_inches='tight')
+    print("\n=== Compact Average Failed Requests Heatmap Saved ===")
+    print(f"Failed Request Count Range: {np.nanmin(heatmap_data):.2f} - {np.nanmax(heatmap_data):.2f}")
+    print(f"Heatmap Shape: {heatmap_data.shape}")
+
+
 if __name__ == '__main__':
     
     # 运行drawGraph9生成防御策略-banbar组合热力图
-    drawGraph9()
+    # drawGraph900()
+    
+    # 绘制平均失败请求次数热力图
+    # drawAverageRequestHeatmap()
+    
+    # 绘制紧凑版平均失败请求次数热力图
+    drawAverageRequestHeatmap2()
     
     # 测试P.N参数的实际影响
     # test_PN_effect()

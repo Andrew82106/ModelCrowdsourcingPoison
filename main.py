@@ -38,55 +38,42 @@ globalPunishment = 'time'
 isSave = True
 
 
-def failureCount(defendStrategy: str, question: Question, modelName: str, banbar=0.5):
+def _is_rejected_with_warning(FailCount: int, PReject: float, account_cost: float):
+    """根据拒绝概率和历史失败次数判定是否被拒绝及是否触发封号警告。"""
     result = False
     warning = False
-    # time.sleep(0.01)
-    if defendStrategy == 'none':
-        result = False
-    elif defendStrategy == 'provider inner':
-        SuccessCount, FailCount = question.countProviderHistory(P.findModelProvider(modelName))
-        PReject = max(P.rejectMatrix[modelName][question.step], banbar)  # 被拒绝概率
-        if (random.randint(1, 10)/10) < PReject:
-            result = True  # 被拒绝
-            if FailCount + 1 >= P.N + P.N*question.cost['account']:
-                # if random.random() < 0.01:  # 1%的概率打印调试信息
-                #     print(f"provider inner封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
-                # print(f"provider inner封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
-                warning = True
-    elif defendStrategy == 'simi-global':
-        SuccessCount, FailCount = question.countCountryHistory(P.findModelCountry(modelName))
-        PReject = max(P.rejectMatrix[modelName][question.step], banbar)
-        if (random.randint(1, 10)/10) < PReject:
-            result = True
-            if FailCount + 1 >= P.N + P.N*question.cost['account']:
-                # if random.random() < 0.01:  # 1%的概率打印调试信息
-                #     print(f"simi-global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
-                # print(f"simi-global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
-                warning = True
-    elif defendStrategy == 'global':
-        SuccessCount, FailCount = question.countAllHistory()
-        PReject = max(P.rejectMatrix[modelName][question.step], banbar)
-        if (random.randint(1, 10)/10) < PReject:
-            result = True
-            if FailCount + 1 >= P.N + P.N*question.cost['account']:
-                # if random.random() < 0.01:  # 1%的概率打印调试信息
-                #     print(f"global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
-                # print(f"global封禁: P.N={P.N}, FailCount={FailCount}, cost={question.cost['account']}, threshold={P.N + P.N*question.cost['account']}")
-                warning = True
+    if random.random() < PReject:
+        result = True
+        if FailCount + 1 >= P.N + P.N * account_cost:
+            warning = True
     return result, warning
 
 
-def bayesianCount(modelName: str, question: Question, defendStrategy: str, banbar=0.5):
-    result = False
-    warning = False
-
+def failureCount(defendStrategy: str, question: Question, modelName: str, banbar=0.5):
     if defendStrategy == 'none':
-        result = False
+        return False, False
+    elif defendStrategy == 'provider inner':
+        SuccessCount, FailCount = question.countProviderHistory(P.findModelProvider(modelName))
+        PReject = max(P.rejectMatrix[modelName][question.step], banbar)  # 被拒绝概率
+        return _is_rejected_with_warning(FailCount, PReject, question.cost['account'])
+    elif defendStrategy == 'simi-global':
+        SuccessCount, FailCount = question.countCountryHistory(P.findModelCountry(modelName))
+        PReject = max(P.rejectMatrix[modelName][question.step], banbar)
+        return _is_rejected_with_warning(FailCount, PReject, question.cost['account'])
+        
+    elif defendStrategy == 'global':
+        SuccessCount, FailCount = question.countAllHistory()
+        PReject = max(P.rejectMatrix[modelName][question.step], banbar)
+        return _is_rejected_with_warning(FailCount, PReject, question.cost['account'])
+        
+
+def bayesianCount(modelName: str, question: Question, defendStrategy: str, banbar=0.5):
+    if defendStrategy == 'none':
+        return False, False
     elif defendStrategy == 'provider inner':
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)
-        if (random.randint(1, 10) / 10) < PReject:
-            result = True
+        if random.random() < PReject:
+            return True, False
         # 先判定模型的当前操作是否被拒绝
         # 然后计算当前共享名单范围内本次问题的贝叶斯概率
         modelProvider = P.findModelProvider(modelName)
@@ -98,11 +85,11 @@ def bayesianCount(modelName: str, question: Question, defendStrategy: str, banba
             # 使用毒性值作为权重因子，毒性值越高，概率上升越快
             PBayesian = min(question.PBayesian[modelProvider][-1] * (0.5 + question.toxicValue), 1)
         question.PBayesian[modelProvider].append(PBayesian)
-        if random.randint(1, 10) / 10 < PBayesian:
+        if random.random() < PBayesian:
             warning = True
     elif defendStrategy == 'simi-global':
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)
-        if (random.randint(1, 10) / 10) < PReject:
+        if random.random() < PReject:
             result = True
         # 先判定模型的当前操作是否被拒绝
         # 然后计算当前共享名单范围内本次问题的贝叶斯概率
@@ -115,11 +102,11 @@ def bayesianCount(modelName: str, question: Question, defendStrategy: str, banba
             # 使用毒性值作为权重因子，毒性值越高，概率上升越快
             PBayesian = min(question.PBayesian[modelCountry][-1] * (0.5 + question.toxicValue), 1)
         question.PBayesian[modelCountry].append(PBayesian)
-        if random.randint(1, 10) / 10 < PBayesian:
+        if random.random() < PBayesian:
             warning = True
     elif defendStrategy == 'global':
         PReject = max(P.rejectMatrix[modelName][question.step], banbar)
-        if (random.randint(1, 10) / 10) < PReject:
+        if random.random() < PReject:
             result = True
         # 先判定模型的当前操作是否被拒绝
         # 然后计算当前共享名单范围内本次问题的贝叶斯概率
@@ -132,7 +119,7 @@ def bayesianCount(modelName: str, question: Question, defendStrategy: str, banba
             # 使用毒性值作为权重因子，毒性值越高，概率上升越快
             PBayesian = min(question.PBayesian[Tag][-1] * (0.5 + question.toxicValue), 1)
         question.PBayesian[Tag].append(PBayesian)
-        if random.randint(1, 10) / 10 < PBayesian:
+        if random.random() < PBayesian:
             warning = True
 
     return result, warning

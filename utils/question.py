@@ -55,6 +55,9 @@ class Question(MetaFunction):
                 'warning': warning
             }
         )
+
+    def exportProviderList(self):
+        return list(set([history['modelProvider'] for history in self.history]))
     
 
     def countBaseAccountNum(self):
