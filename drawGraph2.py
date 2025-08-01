@@ -89,16 +89,23 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
                             questionList=[Question(random.randint(1, 4), P.maxStep, evaluateScoreMatrix) for _ in range(P.numQuestions)],
                             banbar=banbar
                         )
-                        
                         # 计算封号次数
                         if globalDefendStrategy == "global":
                             fail_counts_all = sum([question_.countAllHistory()[1] for question_ in finalQuestionList])
-                            mean_fail = fail_counts_all // P.N
+                            mean_fail = fail_counts_all / (P.N * len(finalQuestionList))
+                            success_counts_all = sum([question_.countAllHistory()[0] for question_ in finalQuestionList])
+                            print(f"success_counts_all: {success_counts_all}, fail_counts_all: {fail_counts_all}")
+                            
                             # 失败总数除以PN得到封号次数
                         elif globalDefendStrategy == "simi-global":
-                            chi_fail_sum = sum([question_.countCountryHistory('Chi')[1] for question_ in finalQuestionList]) // P.N
-                            for_fail_sum = sum([question_.countProviderHistory('For')[1] for question_ in finalQuestionList]) // P.N
-                            mean_fail = (chi_fail_sum // P.N) + (for_fail_sum // P.N)
+                            chi_fail_sum = sum([question_.countCountryHistory('Chi')[1] for question_ in finalQuestionList])
+                            chi_success_sum = sum([question_.countCountryHistory('Chi')[0] for question_ in finalQuestionList])
+                            for_fail_sum = sum([question_.countProviderHistory('For')[1] for question_ in finalQuestionList])
+                            for_success_sum = sum([question_.countProviderHistory('For')[0] for question_ in finalQuestionList])
+                            mean_fail = (chi_fail_sum / (P.N * len(finalQuestionList))) + (for_fail_sum / (P.N * len(finalQuestionList)))
+                            print(f"chi_success_sum: {chi_success_sum}, for_success_sum: {for_success_sum}")
+                            print(f"chi_fail_sum: {chi_fail_sum}, for_fail_sum: {for_fail_sum}")
+                            
                             # 每个国家的失败次数除以PN得到封号次数，然后求平均
                         elif globalDefendStrategy == "provider inner":
                             mean_fail = 0
@@ -110,12 +117,14 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
                                         provider_map[provider] = 0
                                     provider_map[provider] += question_.countProviderHistory(provider)[1]
                             for provider in provider_map:
-                                mean_fail += (provider_map[provider] // P.N)
+                                print(f"provider: {provider}, FailCount: {provider_map[provider]}")
+                                mean_fail += (provider_map[provider] / (P.N * len(finalQuestionList)))
+                            
                             mean_fail = mean_fail / len(provider_map)
                             # 所有提供商的封号次数求平均
                         else:
                             raise Exception(f"Invalid defend strategy {globalDefendStrategy}")
-                        print(f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail: {mean_fail}")
+                        print(">"*5 + f"banbar: {banbar}, attack method: {attackMethod}, defend method: {defendMethod}, mean fail: {mean_fail}" + "<"*5 + "\n")
                         result.append(
                             {
                                 "attackMethod": attackMethod,

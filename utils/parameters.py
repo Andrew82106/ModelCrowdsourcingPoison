@@ -35,7 +35,7 @@ class Parameters(MetaFunction):
         super().__init__()
         self.numQuestions = 10
         self.N = 10
-        self.maxStep = 12
+        self.maxStep = 8
         # 将deltaList归一化到0-1之间
         self.deltaList = [0, 0.25, 0.5, -0.5, 0.75]*3  # 原来是[0, 1, 2, -2, 3]*3
         self.punishmentTime = 120
