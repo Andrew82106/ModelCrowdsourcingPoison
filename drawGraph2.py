@@ -64,7 +64,7 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
     xticklabel_offset: 横坐标标签名称与坐标轴的距离（单位为points）
     annot_fontsize: 热力图数字字体大小
     """
-    P.numQuestions = 1000
+    P.numQuestions = 10000
     P.N = 10
     banbar_values = [0, 0.5, 0.8]
     
@@ -181,15 +181,15 @@ def drawGraph9(colorbar_pad=0.02, yticklabel_offset=10, xticklabel_offset=10, an
             heatmap_data[i, j] = val.values[0] if not val.empty else np.nan
 
     # 绘制热力图
-    plt.figure(figsize=(12, 8))  # 调整尺寸适应9x6矩阵
+    plt.figure(figsize=(8, 3))  # 调整尺寸适应9x6矩阵
     ax = sns.heatmap(
         heatmap_data,
         annot=True,
-        fmt='.1f',
-        cmap='Reds',
+        fmt='.3f',
+        cmap='Purples',
         xticklabels=attack_methods_disp,
         yticklabels=defend_banbar_methods_disp,
-        cbar_kws={'label': 'Average of Detected Count per Question', 'pad': colorbar_pad}
+        cbar_kws={'label': 'Average Banned Accounts', 'pad': colorbar_pad}
     )
     
     # 在每三行之间添加白色分割线（区分不同banbar值的组）
